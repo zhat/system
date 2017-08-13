@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}首页{% endblock title %}
+{% block css %}
+    <style type="text/css">
+        .modal-dialog{
+            top:120px;
+        }
+        .pagination{
+            margin-left: 450px;
+        }
+    </style>
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    {% if order_list %}
+        <h1>查询记录</h1>
+    {% else %}
+        <h1>没有查询记录</h1>
+    {% endif %}
+        <a id="modal-325929" href="#modal-container-325929" role="button" class="btn" data-toggle="modal">新增查询</a>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>zone</th>
+                <th>asin</th>
+                <th>客户姓名</th>
+                <th>profile</th>
+                <th>days</th>
+                <th>查询时间</th>
+                <th>状态</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in order_list %}
+                <tr>
+                    <td>{{ order.zone }}</td>
+                    <td>{{ order.asin }}</td>
+                    <td>{{ order.name }}</td>
+                    <td>{{ order.profile }}</td>
+                    <td>{{ order.days }}</td>
+                    <td>{{ order.add_time }}</td>
+                    {% if not order.start_time %}
+                        <td>未开始</td>
+                    {% elif not order.end_time %}
+                        <td>查询中</td>
+                    {% else %}
+                        <td>已结束</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="container">
+    <div class="pagination">
+        <span class="step-links">
+            {% if order_list.has_previous %}
+                <a href="?page={{ order_list.previous_page_number }}">前一页</a>
+            {% endif %}
+
+            <span class="current">
+                第 {{ order_list.number }} 页，共 {{ order_list.paginator.num_pages }} 页
+            </span>
+
+            {% if order_list.has_next %}
+                <a href="?page={{ order_list.next_page_number }}">下一页</a>
+            {% endif %}
+        </span>
+    </div>
+    </div>
+
+
+    <div class="modal fade" id="modal-container-325929" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h4 class="modal-title" id="myModalLabel">
+                                添加新的查询
+							</h4>
+						</div>
+						<div class="modal-body">
+	                        <div class="row clearfix">
+		                        <div class="col-md-12 column">
+			                    <form class="form-horizontal" role="form" action="{% url 'spider:add' %}" method="POST">
+                                    {% csrf_token %}
+				                    <div class="form-group">
+					                <label for="asin" class="col-sm-3 control-label">asin:</label>
+					                    <div class="col-sm-8">
+						                <input type="text" class="form-control has-error" id="asin" name="asin" required/>
+					                </div>
+				                    </div>
+				                    <div class="form-group">
+					                    <label for="name" class="col-sm-3 control-label">客户姓名:</label>
+					                <div class="col-sm-8">
+						                <input type="text" class="form-control" id="name" name="name"/>
+					                </div>
+				                    </div>
+                                    <div class="form-group">
+                                         <label for="profile" class="col-sm-3 control-label">profile:</label>
+					                    <div class="col-sm-8">
+						                    <input type="text" class="form-control" id="profile" name="profile" required />
+					                    </div>
+				                    </div>
+                                    <div class="form-group">
+                                        <label for="zone" class="col-sm-3 control-label">zone:</label>
+					                        <div class="col-sm-8">
+						                    <select class="form-control" id="zone" name="zone">
+                                                <option>DE</option>
+                                                <option>CA</option>
+                                                <option>US</option>
+                                                <option>JP</option>
+                                            </select>
+                                        </div>
+				                    </div>
+                                    <div class="form-group">
+					                    <label for="days" class="col-sm-3 control-label">步长天数:</label>
+					                        <div class="col-sm-8">
+						                    <input type="number" class="form-control" id="days" name="days" required/>
+					                    </div>
+				                    </div>
+				                    <div class="form-group">
+					                    <div class="col-sm-offset-4 col-sm-8">
+						                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                            <button type="submit" class="btn btn-primary">保存</button>
+					                    </div>
+				                    </div>
+			                    </form>
+		                        </div>
+                            </div>
+						</div>
+						<div class="modal-footer">
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+
+{% endblock context %}

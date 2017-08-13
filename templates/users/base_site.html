@@ -1,0 +1,9 @@
+{% extends "users/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">登录</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

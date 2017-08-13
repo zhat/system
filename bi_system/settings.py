@@ -118,7 +118,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -136,7 +136,7 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 LOGIN_URL='/users/login/'
 
 #BROKER_URL = 'django://localhost:8000//'
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'amqp://lepython:qaz123456@192.168.2.97:5672//'
 CELERYD_CONCURRENCY = 1  # 并发worker数
-CELERYD_MAX_TASKS_PER_CHILD = 2    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
+CELERYD_MAX_TASKS_PER_CHILD = 100    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
 CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'

@@ -99,7 +99,7 @@ class AmazonOrderManagerCrawlFromAsin_():
             }
         })
         chrome_options.add_argument(
-            '--user-data-dir=' + r'/home/lepython/.config/google-chrome')
+            '--user-data-dir=' + r'C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data')
         # driver = webdriver.Chrome(current_path + os.path.sep + 'drive' + os.path.sep + 'chromedriver.exe')
         driver = webdriver.Chrome(chrome_options=chrome_options)
         try:

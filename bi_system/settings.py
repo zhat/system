@@ -126,9 +126,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
-STATICFILES_DIRS=(
-    os.path.join(BASE_DIR,'spider','static'),
-)
+#STATICFILES_DIRS=(
+#    os.path.join(BASE_DIR,'spider','static'),
+#)
 
 MEDIA_URL='/media/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
@@ -136,7 +136,7 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 LOGIN_URL='/users/login/'
 
 #BROKER_URL = 'django://localhost:8000//'
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'amqp://lepython:qaz123456@localhost:5672//'
 CELERYD_CONCURRENCY = 1  # 并发worker数
 CELERYD_MAX_TASKS_PER_CHILD = 2    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
 CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'

@@ -6,11 +6,12 @@ __pycache__/
 *.so
 #sqlite3
 db.sqlite3
-
+reload
 # Distribution / packaging
 .Python
 env/
 build/
+run/
 develop-eggs/
 dist/
 downloads/

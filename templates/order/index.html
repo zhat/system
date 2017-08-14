@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}首页{% endblock title %}
+{% block css %}
+    <style type="text/css">
+        .modal-dialog{
+            top:120px;
+        }
+    </style>
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    {% if order %}
+        {{ order.order_id }}
+        {{ order.id }}
+    {% else %}
+        <h1>没有查询记录</h1>
+    {% endif %}
+    </div>
+
+{% endblock context %}

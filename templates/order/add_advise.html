@@ -1,21 +1,22 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}首页{% endblock title %}
+{% block title %}意见/建议{% endblock title %}
 {% block context %}
     <div class="container">
         <h2 class="text-center">网站意见/建议</h2>
         <br />
-        <form class="form-horizontal"  action="{% url 'order:search' %}" method="GET">
-            <div class="form-group">
-                <label for="profile" class="col-sm-4 control-label">profile</label>
-                <div class="col-sm-4">
-                    <input type="text" class="form-control" id="profile" name="profile" placeholder="profile">
-                </div>
-                <div class="col-sm-4">
-                    <button type="submit" class="btn btn-primary">查 询</button>
-                </div>
-            </div>
-        </form>
+    <h1>开发中</h1>
+{#        <form class="form-horizontal"  action="{% url 'order:search' %}" method="GET">#}
+{#            <div class="form-group">#}
+{#                <label for="profile" class="col-sm-4 control-label">profile</label>#}
+{#                <div class="col-sm-4">#}
+{#                    <input type="text" class="form-control" id="profile" name="profile" placeholder="profile">#}
+{#                </div>#}
+{#                <div class="col-sm-4">#}
+{#                    <button type="submit" class="btn btn-primary">查 询</button>#}
+{#                </div>#}
+{#            </div>#}
+{#        </form>#}
         <br />
 {% endblock context %}
 

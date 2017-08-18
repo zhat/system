@@ -9,7 +9,7 @@ from django.contrib.auth.forms import UserCreationForm
 def logout_view(request):
     """注销用户"""
     logout(request)
-    return HttpResponseRedirect(reverse('spider:orders'))
+    return HttpResponseRedirect(reverse('order:search'))
 
 def register(request):
     """注册新用户"""

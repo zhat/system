@@ -426,7 +426,7 @@ if __name__=='__main__':
     zone = 'DE'
     zone_lower_case = zone.lower()
 
-    amzCrawl = AmazonOrderManagerCrawlFromAsin_(zone, asin, '2017-08-02', '2013-01-01', 90) # 每次启动跑16天的数据，截至到当天往前推62天
+    amzCrawl = AmazonOrderManagerCrawlFromAsin_(zone, asin, '2017-08-02', '2017-01-01', 90) # 每次启动跑16天的数据，截至到当天往前推62天
 
 
     amzCrawl.getOrderInfo()

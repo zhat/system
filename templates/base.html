@@ -18,7 +18,7 @@
     <link href="{% static 'css/ie10-viewport-bug-workaround.css' %}" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="{% static 'css/navbar-fixed-top.css' %}" rel="stylesheet">
+    <link href="{% static 'css/navbar.css' %}" rel="stylesheet">
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -35,7 +35,7 @@
 
   <body>
     <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top">
+    <nav class="navbar navbar-default">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -48,7 +48,13 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="{% url 'spider:orders' %}">订单查询</a></li>
+              <li>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">订单查询<span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                      <li class="" id="li_order"><a href="{% url 'order:search' %}">订单查询</a></li>
+                      <li class="" id="li_spider"><a href="{% url 'spider:orders' %}">任务查询</a></li>
+                  </ul>
+              </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}
@@ -57,11 +63,13 @@
               {% else %}
                   <li><a href="{% url 'users:login' %}">登录</a></li>
               {% endif %}
-              <li><a href="{% url 'users:about' %}">关于</a></li>
+{#              <li><a href="{% url 'users:about' %}">关于</a></li>#}
+                <li class="" id="li_advise"><a href="{% url 'order:advise' %}">意见/建议</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
+
     {% block context %}
     <div class="container-fluid">
 
@@ -82,6 +90,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
   {% block js %}

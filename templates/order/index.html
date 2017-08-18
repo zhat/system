@@ -1,21 +1,56 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}首页{% endblock title %}
-{% block css %}
-    <style type="text/css">
-        .modal-dialog{
-            top:120px;
-        }
-    </style>
-{% endblock css %}
 {% block context %}
     <div class="container">
-    {% if order %}
-        {{ order.order_id }}
-        {{ order.id }}
-    {% else %}
-        <h1>没有查询记录</h1>
-    {% endif %}
+        <h2 class="text-center">订单查询</h2>
+        <br />
+        <form class="form-horizontal"  action="{% url 'order:search' %}" method="GET">
+            <div class="form-group">
+                <label for="profile" class="col-sm-4 control-label">profile</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" id="profile" name="profile" placeholder="profile">
+                </div>
+                <div class="col-sm-4">
+                    <button type="submit" class="btn btn-primary">查 询</button>
+                </div>
+            </div>
+        </form>
+        <br />
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>Profile</th>
+                <th>zone</th>
+                <th>Order ID</th>
+                <th>Order Time</th>
+            </tr>
+            </thead>
+            {% if result == 1 %}
+            <tbody>
+            <tr>
+                <td>{{ order.profile }}</td>
+                <td>{{ order.zone }}</td>
+                <td>{{ order.order_id }}</td>
+                <td>{{ order.order_time }}</td>
+            </tr>
+            </tbody>
+            {% endif %}
+        </table>
+            {% if result == 2 %}
+                <div class="text-center">
+                    <br />
+                    <h4 class="text-danger">没有查询到订单信息,请确认profile是否输入正确</h4>
+                    <br />
+                    <h4>请点击<a href="{% url 'spider:orders' %}">后台任务</a>登记相关信息</h4>
+                </div>
+            {% endif %}
     </div>
 
 {% endblock context %}
+
+{% block js %}
+    <script>
+    $('#li_order').attr('class','active');
+    </script>
+{% endblock js %}

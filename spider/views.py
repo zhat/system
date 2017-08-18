@@ -3,7 +3,7 @@ from datetime import datetime
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpResponseRedirect,Http404
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from .models import Student,OrderCrawl
 from .permission import  check_permission
@@ -46,9 +46,3 @@ def order_add(request):
             new_order.save()
             get_order_info.delay(new_order.id)
     return HttpResponseRedirect(reverse('spider:orders'))
-
-def task_demo(request):
-    order=OrderCrawl.objects.first()
-    print(order.id)
-    get_order_info.delay(order.id)
-    return render(request,'spider/list.html',{})

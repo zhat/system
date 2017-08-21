@@ -1,6 +1,10 @@
 from django.shortcuts import render
+from datetime import datetime
 from .models import OrderData,Advise
 from django.contrib.auth.decorators import login_required
+from .forms import AdviseForm
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 # Create your views here.
 @login_required
 def search(request):
@@ -26,4 +30,13 @@ def search(request):
 
 @login_required
 def add_advise(request):
-    return  render(request,'order/add_advise.html',{})
+    if request.method=="POST":
+        form = AdviseForm(request.POST)
+        if form.is_valid():
+            new_advise = form.save(commit=False)
+            new_advise.add_time= datetime.now()
+            new_advise.user=request.user
+            new_advise.save()
+            return HttpResponseRedirect(reverse('order:search'))
+    else:
+        return render(request,'order/add_advise.html')

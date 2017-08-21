@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'order',
     'djcelery',
     'kombu.transport.django',
+    'bootstrap_toolkit',
 ]
 
 MIDDLEWARE = [

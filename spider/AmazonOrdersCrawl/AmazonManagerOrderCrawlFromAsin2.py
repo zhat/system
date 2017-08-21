@@ -174,7 +174,7 @@ class AmazonOrderManagerCrawlFromAsin_():
             print(e)
 
 if __name__=='__main__':
-    zone = 'US'
+    zone = 'JP'
     t1 = datetime.now()
     print(t1)
     amzCrawl = AmazonOrderManagerCrawlFromAsin_(zone,200)

@@ -20,7 +20,7 @@ def index(request):
     return render(request, 'spider/index.html', {})
 @login_required
 def orders(request):
-    order_list = OrderCrawl.objects.all().order_by('-add_time')
+    order_list = OrderCrawl.objects.filter(user=request.user).order_by('-add_time')
     paginator = Paginator(order_list, 5)  # Show 25 contacts per page
 
     page = request.GET.get('page')
@@ -38,7 +38,6 @@ def orders(request):
 def order_add(request):
     if request.method=='POST':
         form=OrderCrawlForm(request.POST)
-        print(request.user)
         if form.is_valid():
             new_order = form.save(commit=False)
             new_order.user = request.user

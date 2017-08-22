@@ -1,4 +1,5 @@
 # coding = utf-8
+import sys
 from datetime import datetime
 import pandas as pd
 import pymysql
@@ -87,7 +88,7 @@ class AmazonOrderManagerCrawlFromAsin_():
 
     def get_order_id_list(self):
 
-        sqlcmd = r'SELECT order_id FROM order_orderdata WHERE zone="%s" and `profile` is null  and `status`!="Canceled" and order_time<"2017-07-01 08:53:12" limit %d,%d;'%(self.zone,self.not_find_profile_num, self.crawl_number)
+        sqlcmd = r'SELECT order_id FROM order_orderdata WHERE zone="%s" and `profile` is null  and `status`!="Canceled" and order_time<"2017-07-22 08:53:12" limit %d,%d;'%(self.zone,self.not_find_profile_num, self.crawl_number)
         self.cur.execute(sqlcmd)
         order_id_list = self.cur.fetchall()
         order_id_list = [x for j in order_id_list for x in j]
@@ -136,6 +137,9 @@ class AmazonOrderManagerCrawlFromAsin_():
                     print("%03d:%s未找到profile" % (order_number, order_id))
                     self.not_find_profile_num+=1
                 order_number+=1
+
+            if not order_id_list:
+                sys.exit()
 
         except Exception as e:
             print(e)

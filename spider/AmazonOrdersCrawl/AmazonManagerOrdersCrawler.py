@@ -126,17 +126,16 @@ class AmazonOrderManagerCrawl():
         except Exception as e:
             _LOGGING.error(e)
 
-    def getOrderInfo(self):
-        # get username and password
-        sqlcmd = "select username as un, AES_DECRYPT(password_encrypt,'andy') as pw, login_url as url from core_amazon_account a where department = '技术部' and platform = '"+self.zone+"'"
+    def get_login_info(self):
+        sqlcmd = "select username as un, AES_DECRYPT(password_encrypt,'andy') as pw, login_url as url from core_amazon_account a where department = '技术部' and platform = '" + self.zone + "'"
         a = pd.read_sql(sqlcmd, self.dbconn)
         if (len(a) > 0):
             username = a["un"][0]
             password = str(a["pw"][0], encoding="utf-8")
             url = a["url"][0]
-        else:
-            sys.exit(0)
+            return (url,username,password)
 
+    def open_browser(self):
         chrome_options = Options()
         chrome_options.add_experimental_option('prefs', {
             'credentials_enable_service': False,
@@ -145,37 +144,39 @@ class AmazonOrderManagerCrawl():
             }
         })
         chrome_options.add_argument(
-            "--user-data-dir=" + r"C:\Users\Administrator\AppData\Local\Google\Chrome\User Data")
+            "--user-data-dir=" + r'C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data')
         # driver = webdriver.Chrome(current_path + os.path.sep + 'drive' + os.path.sep + 'chromedriver.exe')
-        driver = webdriver.Chrome(executable_path='D:\\andy_yang\\projects\\AmazonPaymentGenerator\\drive\\chromedriver.exe', chrome_options=chrome_options)
+        return webdriver.Chrome(chrome_options=chrome_options)
+
+    # 登录亚马逊后台
+    def login(self, driver):
         try:
 
             # open driver and get url
             driver.set_page_load_timeout(200)
 
-            driver.get(url)
-            time.sleep(5)
-
-            driver.refresh()
-            time.sleep(5)
-
+            driver.get(self.url)
+            driver.implicitly_wait(10)
             driver.find_element_by_id("ap_email").clear()
-            time.sleep(2)
-            driver.find_element_by_id("ap_email").send_keys(username)
-            time.sleep(2)
-            driver.find_element_by_id("ap_password").send_keys(password)
-            time.sleep(2)
+            driver.implicitly_wait(5)
+            driver.find_element_by_id("ap_email").send_keys(self.username)
+            driver.implicitly_wait(5)
+            driver.find_element_by_id("ap_password").send_keys(self.password)
+            driver.implicitly_wait(5)
             driver.find_element_by_id("signInSubmit").click()
-            time.sleep(4)
-
             # login in complete
             WebDriverWait(driver, 120).until(
                 lambda driver: driver.execute_script("return document.readyState") == 'complete')
-            time.sleep(2)
+            selector = driver.find_element_by_id('sc-lang-switcher-header-select')
+            Select(selector).select_by_visible_text("English")
+            WebDriverWait(driver, 120).until(
+                lambda driver: driver.execute_script("return document.readyState") == 'complete')
             driver.maximize_window()
+            return True
+        except Exception as e:
+            _LOGGING(e)
+            return False
 
-            driver.refresh()
-            time.sleep(5)
 
             # sub_zone_url = '/merchant-picker/change-merchant?url=%2F&marketplaceId=' + marketplaceid_dict[self.zone.lower()] + '&merchantId=' +  merchantId_dict[self.zone.lower()]
             sub_zone_url = ''
@@ -301,18 +302,6 @@ class AmazonOrderManagerCrawl():
 
     def crawlByExactDateAndZone(self, driver, startDate, endDate, sub_zone_url, sub_zone, order_date_str):
 
-        # chose the zone
-        # selector =driver.find_element_by_xpath('//*[@id="sc-mkt-picker-switcher-select"]')
-        # try:
-        #     selector = driver.find_element_by_id('sc-mkt-picker-switcher-select')
-        #     Select(selector).select_by_value(sub_zone_url)  # 子站
-        #     WebDriverWait(driver, 120).until(
-        #         lambda driver: driver.execute_script("return document.readyState") == 'complete')
-        #     time.sleep(2)
-        # except Exception as e:
-        #     _LOGGING.error(e)
-        #     pass
-
         # chose english language
         try:
             selector = driver.find_element_by_id('sc-lang-switcher-header-select')
@@ -339,20 +328,6 @@ class AmazonOrderManagerCrawl():
             _LOGGING.error(e)
             pass
 
-        # click to 'Advanced Search' link
-        # try:
-        #     target_menu = 'Advanced Search'
-        #     target_link = driver.find_elements_by_link_text(target_menu)
-        #     if target_link:
-        #         target_link[0].click()
-        #         WebDriverWait(driver, 120).until(
-        #             lambda driver: driver.execute_script("return document.readyState") == 'complete')
-        #         time.sleep(2)
-        #     else:
-        #         pass
-        # except Exception as e:
-        #     _LOGGING.error(e)
-
         # change the begin and end date
         try:
             exactDateBeginStr = startDate
@@ -371,10 +346,6 @@ class AmazonOrderManagerCrawl():
             js = "document.getElementById(\'exactDateEnd\').removeAttribute('readonly');document.getElementById(\'exactDateEnd\').setAttribute('value','" + exactDateEndStr + "');"
             driver.execute_script(js)
 
-            # driver.find_element_by_id('exactDateBegin').send_keys(exactDateBeginStr)
-            # driver.find_element_by_id('exactDateEnd').send_keys(exactDateEndStr)
-
-            # driver.find_element_by_id(sub_zone_amzid_dict[sub_zone]).click()
 
             driver.find_element_by_id('SearchID').click()
 
@@ -588,20 +559,6 @@ class AmazonOrderManagerCrawl():
             if order.xpath("./td/input[@class='latestShipDate']/@value"):
                 latestShipDate_str = order.xpath("./td/input[@class='latestShipDate']/@value")[0]
             x = time.localtime(int(latestShipDate_str))
-            latestShipDate = time.strftime('%Y-%m-%d %H:%M:%S', x)
-
-            # # search order_id if it exists
-            # order_id_exists_sql = "select order_id from amazon_report_manager_orders_"+zone_lower_case+" where order_id = '%s'" % order_id
-            # order_id_exists_list = pd.read_sql(order_id_exists_sql, self.dbconn)
-            #
-            # order_id_list = order_id_exists_list['order_id'].tolist()
-            # order_id_list_len = order_id_list.__len__()
-            #
-            # if order_id_list_len > 0:
-            #     pass
-            # else:
-            #     sqli = "insert into amazon_report_manager_orders_"+zone_lower_case+"(order_id, cust_id, zone, order_date, create_date) values(%s, %s, %s, %s, %s)"
-            #     self.cur.execute(sqli, (order_id, cust_id, self.zone, order_date_str, dt))
 
             sqli = "insert into amazon_report_manager_orders_"+zone_lower_case+"(order_id, cust_id, zone, order_date, create_date) values(%s, %s, %s, %s, %s)"
             self.cur.execute(sqli, (order_id, cust_id, self.zone, order_date_str, dt))
@@ -662,15 +619,6 @@ class AmazonOrderManagerCrawl():
         except Exception as e:
             _LOGGING(e)
 
-
-
-    # def __del__(self):
-    #     try:
-    #         self.cur.close()
-    #         self.dbconn.close()
-    #         sys.exit(0)
-    #     except Exception as e:
-    #        _LOGGING.error(e)
 
     def deleteAll(self, driver):
         try:

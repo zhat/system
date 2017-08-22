@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'bi_system.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bi_system',
+        'NAME': 'bi_system_dev',
         'USER':'lepython',
         'PASSWORD':'qaz123456',
         'HOST':'192.168.2.97',

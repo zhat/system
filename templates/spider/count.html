@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}统计信息{% endblock title %}
+{% block css %}
+    <style type="text/css">
+        .modal-dialog{
+            top:120px;
+        }
+        .pagination{
+            margin-left: 450px;
+        }
+    </style>
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    {% if count_info_list %}
+        <h1>统计信息</h1>
+    {% else %}
+        <h1>没有订单信息</h1>
+    {% endif %}
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>订单数</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for count_info in count_info_list %}
+                <tr>
+                    <td>{{ count_info.order_day }}</td>
+                    <td>{{ count_info.total }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="container">
+    <div class="pagination">
+        <span class="step-links">
+            {% if count_info_list.has_previous %}
+                <a href="?page={{ count_info_list.previous_page_number }}">前一页</a>
+            {% endif %}
+
+            <span class="current">
+                第 {{ count_info_list.number }} 页，共 {{ count_info_list.paginator.num_pages }} 页
+            </span>
+
+            {% if count_info_list.has_next %}
+                <a href="?page={{ count_info_list.next_page_number }}">下一页</a>
+            {% endif %}
+        </span>
+    </div>
+    </div>
+{% endblock context %}

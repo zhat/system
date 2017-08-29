@@ -49,3 +49,11 @@ class Permission(models.Model):
             ('views_student_list', '查看学员信息表'),
             ('views_student_info', '查看学员详细信息'),
         )
+
+class CountOfDay(models.Model):
+    order_day = models.CharField("日期",max_length=64)
+    total = models.IntegerField("抓取订单数量",default=0)
+    success = models.IntegerField('成功获取profile数量',null=True,blank=True,editable=False)
+
+    def __str__(self):
+        return self.day

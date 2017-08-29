@@ -1,4 +1,6 @@
 # coding = utf-8
+import sys
+import time
 from datetime import datetime,timedelta
 import pandas as pd
 import pymysql
@@ -17,7 +19,7 @@ DATABASE = {
             'charset':'utf8'
 }
 
-USER_DATA_DIR= r'C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data'
+USER_DATA_DIR= r'/home/lepython/.config/google-chrome'
 
 
 """

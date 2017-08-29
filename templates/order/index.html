@@ -64,6 +64,13 @@
         </span>
     </div>
     </div>
+    {% else %}
+        <div class="text-center">
+            <br />
+            <h4 class="text-danger">没有查询到订单信息,请确认profile是否输入正确</h4>
+            <br />
+            <h4>请点击<a href="{% url 'spider:orders' %}">后台任务</a>登记相关信息</h4>
+        </div>
     {% endif %}
 
 {% endblock context %}

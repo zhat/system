@@ -17,7 +17,11 @@
             <div class="form-group">
                 <label for="profile" class="col-sm-4 control-label">profile</label>
                 <div class="col-sm-4">
-                    <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" required />
+                    {% if profile %}
+                        <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" value="{{ profile }}" required />
+                    {% else %}
+                        <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" required />
+                    {% endif %}
                 </div>
                 <div class="col-sm-4">
                     <button type="submit" class="btn btn-primary">查 询</button>
@@ -64,7 +68,7 @@
         </span>
     </div>
     </div>
-    {% else %}
+    {% elif profile %}
         <div class="text-center">
             <br />
             <h4 class="text-danger">没有查询到订单信息,请确认profile是否输入正确</h4>

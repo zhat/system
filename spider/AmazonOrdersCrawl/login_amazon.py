@@ -24,3 +24,18 @@ def amazon_login(zone):
 if __name__=="__main__":
 	zone="CA"
 	amazon_login(zone)
+
+amzCrawl.dbconn = pymysql.connect(
+            host="192.168.2.97",
+            database="bi_system",
+            user="lepython",
+            password="qaz123456",
+            port=3306,
+            charset='utf8'
+        )
+amzCrawl.cur = amzCrawl.dbconn.cursor()
+
+amzCrawl.url,amzCrawl.username,amzCrawl.password=amzCrawl.get_login_info()
+driver=amzCrawl.open_browser()
+driver.get(amzCrawl.url)
+amzCrawl.login(driver)

@@ -1,7 +1,7 @@
 # coding = utf-8
 import sys
 import time
-from datetime import datetime
+from datetime import datetime,timedelta
 import pandas as pd
 import pymysql
 from selenium import webdriver  # selenium 需要自己安装此模块
@@ -9,6 +9,18 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from urllib.parse import urljoin,urlparse,urlunparse
 from selenium.webdriver.chrome.options import Options
+
+DATABASE = {
+            'host':"192.168.2.97",
+            'database':"bi_system",
+            'user':"lepython",
+            'password':"qaz123456",
+            'port':3306,
+            'charset':'utf8'
+}
+
+USER_DATA_DIR= r'/home/lepython/.config/google-chrome'
+
 
 """
     模拟登录下载订单管理页面数据
@@ -20,26 +32,18 @@ from selenium.webdriver.chrome.options import Options
 # change key and value
 # url = 'https://sellercentral.amazon.es/gp/homepage.html?'
 
-class AmazonOrderManagerCrawlFromAsin_():
-    def __init__(self, zone, crawl_number=100):
+class AmazonOrderManagerCrawlFromOrderId():
+    def __init__(self, zone,last_day_str, crawl_number=100):
 
         self.zone = zone
         self.start_time = datetime.now()
         self.crawl_number = crawl_number
         self.not_find_profile_num = 0
-        #     self.dbconn = pymysql.connect(
-    #     host="192.168.2.97",
-    #     database="bi_system",
-    #     user="lepython",
-    #     password="qaz123456",
-    #     port=3306,
-    #     charset='utf8'
-    # )
-    # self.cur = self.dbconn.cursor()
-    # self.url,self.username,self.password = self.get_login_info()
-    # self.short_url = urlunparse(urlparse(self.url)[0:2]+('',)*4)
-
-    #打开浏览器
+        self.last_day_str = last_day_str
+        self.dbconn = pymysql.connect(**DATABASE)
+        self.url, self.username, self.password = self.get_login_info()
+        self.short_url = urlunparse(urlparse(self.url)[0:2] + ('',) * 4)
+    # 打开浏览器
     def get_login_info(self):
         sqlcmd = "select username as un, AES_DECRYPT(password_encrypt,'andy') as pw, login_url as url from core_amazon_account a where department = '技术部' and platform = '" + self.zone + "'"
         a = pd.read_sql(sqlcmd, self.dbconn)
@@ -59,11 +63,19 @@ class AmazonOrderManagerCrawlFromAsin_():
             }
         })
         chrome_options.add_argument(
-            '--user-data-dir=' + r'/home/lepython/.config/google-chrome')
+            '--user-data-dir=' + USER_DATA_DIR)
         return webdriver.Chrome(chrome_options=chrome_options)
     #登录亚马逊后台
     def login(self,driver):
         try:
+            if driver.find_elements_by_xpath("//*[@id='merchant-picker-auth-status']"):
+                try:
+                    driver.find_elements_by_xpath(
+                        "//*[@id='merchant-picker-auth-status']//input[@name='not_authorized_sso_action' and @value='DIFFERENT_USER']")[
+                        0].click()
+                    driver.find_elements_by_xpath("//*[@id='merchant-link-btn-continue']/span/input")[0].click()
+                except Exception as e:
+                    pass
             driver.implicitly_wait(10)
             driver.find_element_by_id("ap_email").clear()
             driver.implicitly_wait(10)
@@ -88,32 +100,21 @@ class AmazonOrderManagerCrawlFromAsin_():
             return False
 
     def get_order_id_list(self):
-
-        sqlcmd = r'SELECT order_id FROM order_orderdata WHERE zone="%s" and `profile` is null  and `status`!="Canceled" and order_time<"2017-07-22 08:53:12" limit %d,%d;'%(self.zone,self.not_find_profile_num, self.crawl_number)
-        self.cur.execute(sqlcmd)
-        order_id_list = self.cur.fetchall()
+        cur = self.dbconn.cursor()
+        sqlcmd = r'SELECT order_id FROM order_orderdata WHERE zone="%s" and `profile` is null  and `status`!="Canceled" and order_time<"%s" limit %d,%d;'%(self.zone,self.last_day_str,self.not_find_profile_num, self.crawl_number)
+        cur.execute(sqlcmd)
+        order_id_list = cur.fetchall()
+        cur.close()
         order_id_list = [x for j in order_id_list for x in j]
         return order_id_list
 
-    def getOrderInfo(self):
-
-        self.dbconn = pymysql.connect(
-            host="192.168.2.97",
-            database="bi_system",
-            user="lepython",
-            password="qaz123456",
-            port=3306,
-            charset='utf8'
-        )
-        self.cur = self.dbconn.cursor()
-        self.url, self.username, self.password = self.get_login_info()
-        self.short_url = urlunparse(urlparse(self.url)[0:2] + ('',) * 4)
+    def getOrderInfo(self,order_id_list):
 
         driver = self.open_browser()
         sqlcmds = []
         try:
             # open driver and get url
-            driver.set_page_load_timeout(200)
+            #driver.set_page_load_timeout(200)
 
             driver.get(self.url)
             driver.implicitly_wait(30)
@@ -127,7 +128,6 @@ class AmazonOrderManagerCrawlFromAsin_():
 
             # sub_zone_url = '/merchant-picker/change-merchant?url=%2F&marketplaceId=' + marketplaceid_dict[self.zone.lower()] + '&merchantId=' +  merchantId_dict[self.zone.lower()]
             order_number=1
-            order_id_list = self.get_order_id_list()
             for order_id in order_id_list:
                 profile=self.parseProfileInfo(driver,order_id)
                 if profile:
@@ -138,18 +138,20 @@ class AmazonOrderManagerCrawlFromAsin_():
                     print("%03d:%s未找到profile" % (order_number, order_id))
                     self.not_find_profile_num+=1
                 order_number+=1
-
-            if not order_id_list:
-                sys.exit()
-
         except Exception as e:
             print(e)
         finally:
             print(datetime.now())
-            for sqlcmd in sqlcmds:
-                self.cur.execute(sqlcmd)
-            print(datetime.now())
-            self.dbconn.commit()
+            cur = self.dbconn.cursor()
+            try:
+                for sqlcmd in sqlcmds:
+                    cur.execute(sqlcmd)
+                print(datetime.now())
+                self.dbconn.commit()
+            except:
+                pass
+            finally:
+                cur.close()
             print(datetime.now())
             self.deleteAll(driver)
 
@@ -172,21 +174,24 @@ class AmazonOrderManagerCrawlFromAsin_():
 
     def deleteAll(self, driver):
         try:
-            self.cur.close()
-            self.dbconn.close()
             driver.quit()
         except Exception as e:
             print(e)
 
+def get_profile(zone,days):
+    now_time = datetime.now()
+    last_day = now_time - timedelta(days=days)
+    last_day_str = last_day.strftime('%Y-%m-%d')
+    amzCrawl = AmazonOrderManagerCrawlFromOrderId(zone, last_day_str, 200)
+    while True:
+        try:
+            order_id_list=amzCrawl.get_order_id_list()
+            if order_id_list:
+                amzCrawl.getOrderInfo(order_id_list)
+            else:
+                break
+        except Exception as e:
+            print(e)
 if __name__=='__main__':
-    zone = 'JP'
-    t1 = datetime.now()
-    print(t1)
-    amzCrawl = AmazonOrderManagerCrawlFromAsin_(zone,200)
-    frequency = 0
-    while frequency<500:
-        amzCrawl.getOrderInfo()
-        frequency+=1
-    t2 = datetime.now()
-    print(t2)
-    print(t2-t1)
+    print(datetime.now())
+    get_profile('DE',8)

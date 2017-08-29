@@ -4,6 +4,7 @@ from datetime import datetime
 from .AmazonOrdersCrawl.AmazonManagerOrderCrawlFromAsin import AmazonOrderManagerCrawlFromAsin_
 from .AmazonOrdersCrawl.AutoUpdateData import  AutoUpdateData
 from .models import OrderCrawl
+from .AmazonOrdersCrawl.AmazonManagerOrderCrawlFromOrderID import get_profile
 
 @shared_task
 def add(x, y):
@@ -39,3 +40,9 @@ def get_order_info(id):
     except:
         pass
     return "执行结束"
+@shared_task
+def get_profile_by_order_id():
+    get_profile('JP', 48)
+    get_profile('CA', 48)
+    get_profile('DE',48)
+    get_profile('US', 48)

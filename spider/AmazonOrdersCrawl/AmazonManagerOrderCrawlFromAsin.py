@@ -103,7 +103,6 @@ class AmazonOrderManagerCrawlFromAsin_():
         # driver = webdriver.Chrome(current_path + os.path.sep + 'drive' + os.path.sep + 'chromedriver.exe')
         driver = webdriver.Chrome(chrome_options=chrome_options)
         try:
-
             # open driver and get url
             driver.set_page_load_timeout(200)
 
@@ -113,7 +112,6 @@ class AmazonOrderManagerCrawlFromAsin_():
             if driver.find_elements_by_xpath("//*[@id='gw-lefty']"):
                 pass
             else:
-
                 driver.refresh()
                 time.sleep(5)
 
@@ -130,36 +128,24 @@ class AmazonOrderManagerCrawlFromAsin_():
                 WebDriverWait(driver, 120).until(
                     lambda driver: driver.execute_script("return document.readyState") == 'complete')
                 time.sleep(2)
-
-
             driver.maximize_window()
-
             driver.refresh()
             time.sleep(5)
-
             # sub_zone_url = '/merchant-picker/change-merchant?url=%2F&marketplaceId=' + marketplaceid_dict[self.zone.lower()] + '&merchantId=' +  merchantId_dict[self.zone.lower()]
             sub_zone_url = ''
             sub_zone = ''
 
             if self.asin != '':
                 end = datetime.datetime.strptime(self.end_date, '%Y-%m-%d')
-
                 start = datetime.datetime.strptime(self.start_date, '%Y-%m-%d')
-
                 days = self.crawl_days
-
                 delta = datetime.timedelta(days=days)
-
                 temp_start = start
                 temp_end = temp_start - delta
-
                 while temp_start >= end :
-
                     if temp_end < end:
                         temp_end = end
-
                     order_date_str = temp_end.strftime('%Y-%m-%d') + ' ' + temp_start.strftime('%Y-%m-%d')
-
 
                     startDate = self.handle_abnormal_date_format(temp_start.strftime(zone_date_format_dict[self.zone_upper_case]))
                     endDate = self.handle_abnormal_date_format(temp_end.strftime(zone_date_format_dict[self.zone_upper_case]))
@@ -169,7 +155,6 @@ class AmazonOrderManagerCrawlFromAsin_():
                     # '2017-06-07 2017-06-14'
                     temp_start = temp_end - datetime.timedelta(days=1)
                     temp_end = temp_start - delta
-
 
         except Exception as e:
             print(e)
@@ -224,9 +209,6 @@ class AmazonOrderManagerCrawlFromAsin_():
             driver.find_element_by_id("searchKeyword").clear()
             driver.find_element_by_id("searchKeyword").send_keys(self.asin)
 
-            # # driver.find_element_by_id('_myoSO_SearchOption_exactDates').click()
-            # _myoLO_SearchTypeSelect = driver.find_element_by_id('_myoLO_SearchTypeSelect')
-            # Select(_myoLO_SearchTypeSelect).select_by_value('DateRange')
 
             _myoLO_preSelectedRangeSelect = driver.find_element_by_id('_myoLO_preSelectedRangeSelect')
             Select(_myoLO_preSelectedRangeSelect).select_by_value('exactDates')
@@ -236,11 +218,6 @@ class AmazonOrderManagerCrawlFromAsin_():
             driver.execute_script(js)
             js = "document.getElementById(\'exactDateEnd\').removeAttribute('readonly');document.getElementById(\'exactDateEnd\').setAttribute('value','" + exactDateBeginStr + "');"
             driver.execute_script(js)
-
-            # driver.find_element_by_id('exactDateBegin').send_keys(exactDateBeginStr)
-            # driver.find_element_by_id('exactDateEnd').send_keys(exactDateEndStr)
-
-            # driver.find_element_by_id(sub_zone_amzid_dict[sub_zone]).click()
 
             driver.find_element_by_id('SearchID').click()
 

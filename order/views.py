@@ -4,6 +4,7 @@ from .models import OrderData,Advise
 from django.contrib.auth.decorators import login_required
 from .forms import AdviseForm
 from django.http import HttpResponseRedirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 # Create your views here.
 @login_required
@@ -16,17 +17,18 @@ def search(request):
     print(profile)
     profile=profile.strip()
     if profile:
+        order_list = OrderData.objects.filter(profile__contains=profile).all().order_by('-order_time')
+        paginator = Paginator(order_list, 10)  # Show 25 contacts per page
+        page = request.GET.get('page')
         try:
-            order = OrderData.objects.get(profile__contains=profile)
-            result = 1
-        except Exception as e:
-            print(e)
-            result = 2
-            order = '没有查询到订单信息'
-        return render(request,'order/index.html',{'result':result,'order':order})
+            order_list = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            order_list = paginator.page(1)
+        result = 1
+        return render(request,'order/index.html',{'order_list':order_list,'profile':profile})
     else:
-        return render(request, 'order/index.html',{'result':0})
-
+        return render(request, 'order/index.html',{})
 
 @login_required
 def add_advise(request):

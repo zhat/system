@@ -99,7 +99,7 @@ class AmazonOrderManagerCrawlFromAsin_():
             }
         })
         chrome_options.add_argument(
-            '--user-data-dir=' + r'C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data')
+            '--user-data-dir=' + r'/home/lepython/.config/google-chrome')
         # driver = webdriver.Chrome(current_path + os.path.sep + 'drive' + os.path.sep + 'chromedriver.exe')
         driver = webdriver.Chrome(chrome_options=chrome_options)
         try:
@@ -173,6 +173,7 @@ class AmazonOrderManagerCrawlFromAsin_():
 
         except Exception as e:
             print(e)
+        finally:
             self.deleteAll(driver)
 
     def handle_abnormal_date_format(self, date_str):

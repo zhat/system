@@ -1,5 +1,6 @@
 # coding = utf-8
 import sys
+import time
 from datetime import datetime
 import pandas as pd
 import pymysql
@@ -58,7 +59,7 @@ class AmazonOrderManagerCrawlFromAsin_():
             }
         })
         chrome_options.add_argument(
-            '--user-data-dir=' + r'C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data')
+            '--user-data-dir=' + r'/home/lepython/.config/google-chrome')
         return webdriver.Chrome(chrome_options=chrome_options)
     #登录亚马逊后台
     def login(self,driver):

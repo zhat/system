@@ -2,15 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
-class Student(models.Model):
-    name = models.CharField('姓名', max_length=64)
-    age = models.SmallIntegerField('年龄')
-    choices = (
-        (1, '男'),
-        (2, '女'),
-        (3, '未知')
-    )
-    sex = models.SmallIntegerField('性别', choices=choices)
 
 class OrderCrawl(models.Model):
     asin = models.CharField(max_length=255,help_text='商品编号')

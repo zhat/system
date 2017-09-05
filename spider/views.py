@@ -5,16 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from .models import Student,OrderCrawl,CountOfDay
+from .models import OrderCrawl,CountOfDay
 from .permission import  check_permission
 from .forms import OrderCrawlForm
 from .tasks import get_order_info,add
 # Create your views here.
-
-@check_permission
-def students(request):
-    students_obj = Student.objects.all()
-    return render(request, 'students_list.html', locals())
 
 def index(request):
     return render(request, 'spider/index.html', {})

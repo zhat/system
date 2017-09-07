@@ -26,7 +26,7 @@ class AmazonOrder(models.Model):
     order_id = models.CharField(max_length=255,db_index=True)
     order_time = models.DateTimeField('下单时间',null=True,blank=True,editable=False)
     create_time = models.DateTimeField('插入时间',null=True,blank=True,editable=False)
-    update_time = models.DateTimeField('更新时间', null=True, blank=True, editable=False)
+    amazon_order_id = models.IntegerField('ID', null=True, blank=True, editable=False)
     status = models.CharField('订单状态', max_length=50, null=True, blank=True, editable=False)
 
     def __str__(self):

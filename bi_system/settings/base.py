@@ -23,10 +23,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1','localhost','192.168.2.97']
-
 
 # Application definition
 
@@ -77,18 +73,6 @@ WSGI_APPLICATION = 'bi_system.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bi_system_dev',
-        'USER':'lepython',
-        'PASSWORD':'qaz123456',
-        'HOST':'192.168.2.97',
-        'PORT':'3306',
-    }
-}
-
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 

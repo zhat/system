@@ -497,6 +497,20 @@ class OrderAdvise(models.Model):
         db_table = 'order_advise'
 
 
+class OrderAmazonorder(models.Model):
+    profile = models.CharField(max_length=255, blank=True, null=True)
+    zone = models.CharField(max_length=16)
+    order_id = models.CharField(max_length=255)
+    order_time = models.DateTimeField(blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    amazon_order_id = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'order_amazonorder'
+
+
 class OrderOrderdata(models.Model):
     profile = models.CharField(max_length=255, blank=True, null=True)
     zone = models.CharField(max_length=16)
@@ -547,13 +561,3 @@ class SpiderPermission(models.Model):
     class Meta:
         managed = False
         db_table = 'spider_permission'
-
-
-class SpiderStudent(models.Model):
-    name = models.CharField(max_length=64)
-    age = models.SmallIntegerField()
-    sex = models.SmallIntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'spider_student'

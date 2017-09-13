@@ -2,38 +2,122 @@
 {% load static %}
 {% block title %}首页{% endblock title %}
 {% block css %}
-    <script src="../../static/js/echarts.min.js"></script>
+
 {% endblock css %}
 {% block context %}
-    <div id="main" style="width: 600px;height:400px;"></div>
+    <div class="container-fluid" id="main" style="height:600px;"></div>
+{% endblock context %}
+{% block js %}
+    <script src="../../static/js/echarts.min.js"></script>
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main'));
 
         // 指定图表的配置项和数据
-        var option = {
-            title: {
-                text: 'ECharts 入门示例'
+        //myChart.title = '折柱混合';
+
+        option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    crossStyle: {
+                        color: '#999'
+                    }
+                }
             },
-            tooltip: {},
+            label:{
+                normal:{
+                show: false,
+                position: 'inside'}
+            },
+            toolbox: {
+                feature: {
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
             legend: {
-                data:['销量']
+                data:['上周同一天','当天','昨天','平均温度','最高温度']
             },
-            xAxis: {
-                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
-            },
-            yAxis: {},
-            series: [{
-                name: '销量',
-                type: 'bar',
-                data: [5, 20, 36, 10, 10, 20]
-            }]
+            xAxis: [
+                {
+                    type: 'category',
+                    //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
+                    data:{{  date_list|slice:"7:"|safe }},
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '销售额',
+                    min: 0,
+                    max: 100000,
+                    interval: 10000,
+                    axisLabel: {
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '温度',
+                    min: 0,
+                    max: 25,
+                    interval: 5,
+                    axisLabel: {
+                        formatter: '{value} °C'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name:'上周同一天',
+                    type:'bar',
+                    data:{{ data_list|slice:":-14" }},
+                    itemStyle:{
+                        normal:{
+                           // color:'#473C8B'
+                        }
+                    }
+                },
+                {
+                    name:'昨天',
+                    type:'bar',
+                    data:{{ data_list|slice:"13:-1" }},
+                    itemStyle:{
+                        normal:{
+                        }
+                    }
+                },
+                {
+                    name:'当天',
+                    type:'bar',
+                    data:{{ data_list|slice:"14:" }}
+                },
+                {
+                    name:'平均温度',
+                    type:'line',
+                    yAxisIndex: 1,
+                    data:[2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.0,6.5,5.7,6.8,2.0,
+                        2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.0,6.5,5.7,6.8]
+                },
+                {
+                    name:'最高温度',
+                    type:'line',
+                    yAxisIndex: 1,
+                    data:[2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.0,6.5,5.7,6.8,2.6, 2.2,
+                        3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.0,6.5,5.7,6.8,2.6]
+                }
+            ]
         };
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
     </script>
-{% endblock context %}
-{% block js %}
-
 {% endblock js %}

@@ -262,3 +262,4 @@ class StatisticsOfPlatform(models.Model):
     class Meta:
         verbose_name = "站点每日总计"
         verbose_name_plural = "站点每日总计"
+        ordering = ['-date']

@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^spider/', include('spider.urls',namespace='spider')),
     url(r'^users/',include('users.urls',namespace='users')),
     url(r'^order/',include('order.urls',namespace='order')),
+    url(r'^report/',include('report.urls',namespace='report')),
 ]

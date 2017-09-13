@@ -54,10 +54,11 @@
                       <li class="" id="li_order"><a href="{% url 'order:search' %}">订单查询</a></li>
                       <li class="" id="li_spider"><a href="{% url 'spider:orders' %}">任务查询</a></li>
                   </ul>
+              </li>
               {% if perms.auth.统计信息 %}
                   <li class="" id="li_spider"><a href="{% url 'spider:count' %}">统计信息</a></li>
               {% endif %}
-              </li>
+              <li  class="" id="li_spider"><a href="{% url 'report:index' %}">统计信息</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}

@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 # Create your models here.
 
@@ -227,20 +228,21 @@ class StatisticsData(models.Model):
     station=models.CharField("站点",max_length=64, null=True)
     qty=models.IntegerField("订单数量", null=True)
     currencycode=models.CharField("币种",max_length=32, null=True)
-    deduction=models.CharField("折扣额",max_length=128, null=True)
-    price=models.CharField("金额",max_length=128, null=True)
+    deduction=models.FloatField("折扣额", null=True)
+    price=models.FloatField("金额", null=True)
     count=models.IntegerField("总数",null=True)
-    sametermrate=models.CharField("同比",max_length=64,null=True)
-    weekrate=models.CharField("周环比",max_length=64,null=True)
-    monthrate=models.CharField("月环比",max_length=64,null=True)
+    sametermrate=models.FloatField("同比",null=True)
+    weekrate=models.FloatField("周环比",null=True)
+    monthrate=models.FloatField("月环比",null=True)
     status=models.CharField("订单状态",max_length=32,null=True)
+    #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
 
     def __str__(self):
         return str(self.date)+self.asin
 
     class Meta:
-        verbose_name = "单品每日统计"
-        verbose_name_plural = "单品每日统计"
+        verbose_name = "单品每日统计临时表"
+        verbose_name_plural = "单品每日统计临时表"
 
 class StatisticsOfPlatform(models.Model):
     date = models.DateField("日期")
@@ -249,12 +251,13 @@ class StatisticsOfPlatform(models.Model):
     qty = models.IntegerField("订单数量", null=True)
     count = models.IntegerField("总数", null=True)
     currencycode = models.CharField("币种", max_length=32, null=True)
-    site_price = models.CharField("站点金额", max_length=128, null=True)
-    dollar_price = models.CharField("美元金额",max_length=128,null=True)
-    RMB_price = models.CharField("人民币金额",max_length=128,null=True)
-    sametermrate = models.CharField("同比", max_length=64, null=True)
-    weekrate = models.CharField("周环比",max_length=64,null=True)
-    monthrate = models.CharField("月环比",max_length=64,null=True)
+    site_price = models.FloatField("站点金额", null=True)
+    dollar_price = models.FloatField("美元金额",null=True)
+    RMB_price = models.FloatField("人民币金额",null=True)
+    sametermrate = models.FloatField("同比", null=True)
+    weekrate = models.FloatField("周环比", null=True)
+    monthrate = models.FloatField("月环比", null=True)
+    #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
 
     def __str__(self):
         return str(self.date)+self.station
@@ -263,3 +266,46 @@ class StatisticsOfPlatform(models.Model):
         verbose_name = "站点每日总计"
         verbose_name_plural = "站点每日总计"
         ordering = ['-date']
+
+
+class AsinInfo(models.Model):
+    date = models.DateField("日期")
+    sku = models.CharField("sku", max_length=128, null=True)
+    asin = models.CharField("asin", max_length=128, null=True)
+    platform = models.CharField("账号", max_length=32, null=True)
+    station = models.CharField("站点", max_length=64, null=True)
+    #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
+
+    def __str__(self):
+        return self.asin
+
+    class Meta:
+        verbose_name = "每日asin信息"
+        verbose_name_plural = "每日asin信息"
+
+class ReportData(models.Model):
+
+    date = models.DateField("日期")
+    sku = models.CharField("sku", max_length=128, null=True)
+    asin = models.CharField("asin", max_length=128, null=True)
+    platform = models.CharField("账号", max_length=32, null=True)
+    station = models.CharField("站点", max_length=64, null=True)
+    qty = models.IntegerField("订单数量", null=True)
+    currencycode = models.CharField("币种", max_length=32, null=True)
+    deduction = models.FloatField("折扣额", null=True)
+    price = models.FloatField("金额", null=True)
+    count = models.IntegerField("总数", null=True)
+    sametermrate = models.FloatField("同比", null=True)
+    weekrate = models.FloatField("周环比", null=True)
+    monthrate = models.FloatField("月环比", null=True)
+    status = models.CharField("订单状态", max_length=32, null=True)
+
+    #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
+    #update_time = models.DateTimeField(auto_now=True,default=datetime.now(),null=True)
+
+    def __str__(self):
+        return str(self.date) + self.asin
+
+    class Meta:
+        verbose_name = "单品每日统计结果表"
+        verbose_name_plural = "单品每日统计结果表"

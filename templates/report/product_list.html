@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}订单查询{% endblock title %}
+{% block css %}
+    <style type="text/css">
+        .pagination{
+            margin-left: 450px;
+        }
+    </style>
+{% endblock css %}
+
+{% block context %}
+    <div class="container">
+        <h2 class="text-center">波动上升TOP10</h2>
+        <br />
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>账号</th>
+                <th>站点</th>
+                <th>订单</th>
+                <th>销量</th>
+                <th>销售额</th>
+                <th>销售额日环比</th>
+                <th>销售额周环比</th>
+                <th>sku</th>
+                <th>asin</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in rise_top10 %}
+                <tr>
+                    <td>{{ product.date }}</td>
+                    <td>{{ product.platform }}</td>
+                    <td>{{ product.station }}</td>
+                    <td>{{ product.qty }}</td>
+                    <td>{{ product.count }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.sametermrate }}</td>
+                    <td>{{ product.weekrate }}</td>
+                    <td>{{ product.sku }}</td>
+                    <td><a href="{% url 'report:product_detail' product.asin %}">{{ product.asin }}</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="container">
+        <h2 class="text-center">波动下降TOP10</h2>
+        <br />
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>账号</th>
+                <th>站点</th>
+                <th>订单</th>
+                <th>销量</th>
+                <th>销售额</th>
+                <th>销售额日环比</th>
+                <th>销售额周环比</th>
+                <th>sku</th>
+                <th>asin</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in drop_top10 %}
+                <tr>
+                    <td>{{ product.date }}</td>
+                    <td>{{ product.platform }}</td>
+                    <td>{{ product.station }}</td>
+                    <td>{{ product.qty }}</td>
+                    <td>{{ product.count }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.sametermrate }}</td>
+                    <td>{{ product.weekrate }}</td>
+                    <td>{{ product.sku }}</td>
+                    <td><a href="{% url 'report:product_detail' product.asin %}">{{ product.asin }}</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock context %}
+
+{% block js %}
+    <script>
+    $('#li_product').attr('class','active');
+    </script>
+{% endblock js %}

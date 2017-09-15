@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}首页{% endblock title %}
+{% block css %}
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+{% endblock css %}
+{% block context %}
+    <div class="container">
+        <div class="form-group">
+            <label for="dtp_input2" class="col-md-2 control-label">Date Picking</label>
+            <div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy/mm/dd" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                <input class="form-control" size="16" type="text" value="" readonly />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            </div>
+            <input type="hidden" id="dtp_input2" value="" /><br/>
+        </div>
+    <div class="form-group">
+            <label for="dtp_input2" class="col-md-2 control-label">Date Picking</label>
+            <div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy/mm/dd" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                <input class="form-control" size="16" type="text" value="" readonly />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            </div>
+            <input type="hidden" id="dtp_input2" value="" /><br/>
+        </div>
+    </div>
+{% endblock context %}
+{% block js %}
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript">
+    $('.form_date').datetimepicker({
+        language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+    });
+
+    function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    }
+    </script>
+{% endblock js %}

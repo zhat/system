@@ -71,7 +71,7 @@
                 },
                 {
                     type: 'value',
-                    name: '销售额环比',
+                    name: '销售额波动',
                     min: 0,
                     max: {{ max_rate }},
                     interval: {{ rate_interval }},
@@ -122,6 +122,6 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
-        $('#li_station').attr('class','active');
+        $('#li_product').attr('class','active');
     </script>
 {% endblock js %}

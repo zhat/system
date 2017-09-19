@@ -9,6 +9,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from urllib.parse import urljoin,urlparse,urlunparse
 from selenium.webdriver.chrome.options import Options
+from django.conf import settings
+
 
 DATABASE = {
             'host':"192.168.2.97",
@@ -19,8 +21,7 @@ DATABASE = {
             'charset':'utf8'
 }
 
-USER_DATA_DIR= r'/home/lepython/.config/google-chrome'
-
+USER_DATA_DIR = settings.CHROME_USER_DATA_DIR
 
 """
     模拟登录下载订单管理页面数据

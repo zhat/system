@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from celery.schedules import crontab
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
-
+#SECRET_KEY = ""
 # SECURITY WARNING: don't run with debug turned on in production!
 
 # Application definition
@@ -123,4 +125,4 @@ LOGIN_URL='/users/login/'
 BROKER_URL = 'amqp://lepython:qaz123456@192.168.2.97:5672//'
 CELERYD_CONCURRENCY = 1  # 并发worker数
 CELERYD_MAX_TASKS_PER_CHILD = 100    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
-CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'

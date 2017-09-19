@@ -7,19 +7,6 @@ from .models import OrderCrawl
 from .AmazonOrdersCrawl.AmazonManagerOrderCrawlFromOrderID import get_profile
 
 @shared_task
-def add(x, y):
-    time.sleep(10)
-    return x + y
-
-@shared_task
-def mul(x, y):
-    return x * y
- 
-@shared_task
-def xsum(numbers):
-    return sum(numbers)
-
-@shared_task
 def get_order_info(id):
     try:
         order=OrderCrawl.objects.get(id=id)

@@ -15,3 +15,4 @@ DATABASES = {
 }
 
 INSTALLED_APPS.append('report')
+CHROME_USER_DATA_DIR = r"C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data"

@@ -6,9 +6,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from .models import OrderCrawl,CountOfDay
-from .permission import  check_permission
+from .permission import check_permission
 from .forms import OrderCrawlForm
-from .tasks import get_order_info,add
+from .tasks import get_order_info
 # Create your views here.
 
 def index(request):

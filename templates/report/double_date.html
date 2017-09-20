@@ -6,32 +6,30 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-        <div class="form-group">
-            <label for="start_time" class="col-md-2 control-label">开始时间</label>
-            <div class="input-group date form_date col-md-5" id="start_time" data-date="" data-date-format="yyyy-mm-dd" data-link-field="start_time" data-link-format="yyyy-mm-dd">
-                <input class="form-control" size="16" type="text" value="" readonly>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
-            <input type="hidden" value="" /><br/>
+        <span style="font-size:14px;">
+            <div class="col-md-6 cy-text-right-md">
+    <div class="form-inline">
+        <div class="form-group cy-mar-ver-s">
+            <span class="cy-pad-hor-s">最后接入时间</span>
         </div>
-        <div class="form-group">
-            <label for="end_time" class="col-md-2 control-label">结束时间</label>
-            <div class="input-group date form_date col-md-5" id="end_time" data-date="" data-date-format="yyyy-mm-dd" data-link-field="end_time" data-link-format="yyyy-mm-dd">
-                <input class="form-control" size="16" type="text" value="" readonly>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
-            <input type="hidden" value="" /><br/>
+        <div class="input-daterange input-group" id="datepicker">
+            <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+            <span class="input-group-addon">至</span>
+            <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
         </div>
+        <div class="form-group cy-mar-ver-s">
+            <button class="btn btn-primary cy-pad-rgt-s" onclick="javascript:doQuery();" type="button">搜索</button>
+        </div>
+    </div>
+</div></span>
     </div>
 {% endblock context %}
 {% block js %}
     <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
     <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
     <script type="text/javascript">
-    $('#start_time').datetimepicker({
-        language:  'zh-CN',
+$('#qBeginTime').datetimepicker({
+    language:  'zh-CN',
         weekStart: 1,
         //todayBtn:  1,
 		autoclose: 1,
@@ -41,11 +39,13 @@
 		forceParse: 0,
         endDate:GetDateStr(-2),
         initialDate:GetDateStr(-2)
-    }).on("click",function(){
-            $("#startTime").datetimepicker("setEndDate",$("div#endTime input:first").text());
-        });
-    $('#end_time').datetimepicker({
-        language:  'zh-CN',
+}).on('changeDate',function(e){
+    var startTime = e.date;
+    $('#qEndTime').datetimepicker('setStartDate',startTime);
+});
+//结束时间：
+$('#qEndTime').datetimepicker({
+    language:  'zh-CN',
         weekStart: 1,
         //todayBtn:  1,
 		autoclose: 1,
@@ -55,16 +55,10 @@
 		forceParse: 0,
         endDate:GetDateStr(-2),
         initialDate:GetDateStr(-2)
-    }).on("click",function(){
-                $("#endTime").datetimepicker("setStartDate",$("div#startTime input:first").text());
-            });
-    $(document).on("click","#endTime",function(){
-                $('#endTime').datetimepicker('show');
-            });
-
-    $(document).on("click","#startTime",function(){
-            $('#startTime').datetimepicker('show');
-        });
+}).on('changeDate',function(e){
+    var endTime = e.date;
+    $('#qBeginTime').datetimepicker('setEndDate',endTime);
+});
     function GetDateStr(AddDayCount) {
         var dd = new Date();
         dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期

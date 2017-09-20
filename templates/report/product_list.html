@@ -40,7 +40,7 @@
                     <td>{{ product.sametermrate }}</td>
                     <td>{{ product.weekrate }}</td>
                     <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' product.asin %}">{{ product.asin }}</a></td>
+                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -76,7 +76,7 @@
                     <td>{{ product.sametermrate }}</td>
                     <td>{{ product.weekrate }}</td>
                     <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' product.asin %}">{{ product.asin }}</a></td>
+                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>

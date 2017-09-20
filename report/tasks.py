@@ -39,7 +39,7 @@ def clean():
     """
     now = datetime.now()
     days = 32
-    while days > 2:
+    while days > 1:
         date = now - timedelta(days=days)
         date = date.strftime("%Y-%m-%d")
         sp_list = StatisticsOfPlatform.objects.filter(date=date)

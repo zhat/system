@@ -76,6 +76,37 @@ class AmazonOrderSearchData(models.Model):
         db_table = 'amazon_order_search_data'
 
 
+class AmazonProductBaseinfo(models.Model):
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=20, blank=True, null=True)
+    ref_id = models.CharField(max_length=20, blank=True, null=True)
+    seller_name = models.CharField(max_length=50, blank=True, null=True)
+    seller_url = models.CharField(max_length=100, blank=True, null=True)
+    brand = models.CharField(max_length=50, blank=True, null=True)
+    brand_url = models.CharField(max_length=100, blank=True, null=True)
+    is_fba = models.CharField(max_length=2, blank=True, null=True)
+    stock_situation = models.CharField(max_length=50, blank=True, null=True)
+    category_name = models.CharField(max_length=255, blank=True, null=True)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    in_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    review_cnt = models.IntegerField(blank=True, null=True)
+    review_avg_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_5_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_4_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_3_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_2_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_1_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cnt_qa = models.IntegerField(blank=True, null=True)
+    offers_url = models.CharField(max_length=200, blank=True, null=True)
+    lowest_price = models.DecimalField(max_digits=11, decimal_places=2, blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_product_baseinfo'
+
+
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=80)
 
@@ -193,6 +224,22 @@ class DjangoAdminLog(models.Model):
     class Meta:
         managed = False
         db_table = 'django_admin_log'
+
+
+class DjangoCeleryResultsTaskresult(models.Model):
+    task_id = models.CharField(unique=True, max_length=255)
+    status = models.CharField(max_length=50)
+    content_type = models.CharField(max_length=128)
+    content_encoding = models.CharField(max_length=64)
+    result = models.TextField(blank=True, null=True)
+    date_done = models.DateTimeField()
+    traceback = models.TextField(blank=True, null=True)
+    hidden = models.IntegerField()
+    meta = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_results_taskresult'
 
 
 class DjangoContentType(models.Model):
@@ -523,6 +570,79 @@ class OrderOrderdata(models.Model):
     class Meta:
         managed = False
         db_table = 'order_orderdata'
+
+
+class ReportAsininfo(models.Model):
+    date = models.DateField()
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_asininfo'
+
+
+class ReportReportdata(models.Model):
+    date = models.DateField()
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+    qty = models.IntegerField(blank=True, null=True)
+    currencycode = models.CharField(max_length=32, blank=True, null=True)
+    deduction = models.FloatField(blank=True, null=True)
+    price = models.FloatField(blank=True, null=True)
+    count = models.IntegerField(blank=True, null=True)
+    sametermrate = models.FloatField(blank=True, null=True)
+    weekrate = models.FloatField(blank=True, null=True)
+    monthrate = models.FloatField(blank=True, null=True)
+    status = models.CharField(max_length=32, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_reportdata'
+
+
+class ReportStatisticsdata(models.Model):
+    date = models.DateField()
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+    qty = models.IntegerField(blank=True, null=True)
+    currencycode = models.CharField(max_length=32, blank=True, null=True)
+    deduction = models.FloatField(blank=True, null=True)
+    price = models.FloatField(blank=True, null=True)
+    count = models.IntegerField(blank=True, null=True)
+    sametermrate = models.FloatField(blank=True, null=True)
+    weekrate = models.FloatField(blank=True, null=True)
+    monthrate = models.FloatField(blank=True, null=True)
+    status = models.CharField(max_length=32, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_statisticsdata'
+
+
+class ReportStatisticsofplatform(models.Model):
+    date = models.DateField()
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+    qty = models.IntegerField(blank=True, null=True)
+    count = models.IntegerField(blank=True, null=True)
+    currencycode = models.CharField(max_length=32, blank=True, null=True)
+    site_price = models.FloatField(blank=True, null=True)
+    dollar_price = models.FloatField(blank=True, null=True)
+    rmb_price = models.FloatField(db_column='RMB_price', blank=True, null=True)  # Field name made lowercase.
+    sametermrate = models.FloatField(blank=True, null=True)
+    weekrate = models.FloatField(blank=True, null=True)
+    monthrate = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_statisticsofplatform'
 
 
 class SpiderCountofday(models.Model):

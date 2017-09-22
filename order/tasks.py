@@ -2,6 +2,7 @@ import time
 from celery import shared_task
 from datetime import datetime,timedelta
 import pymysql
+from .get_profile_of_order import get_profile
 
 DATABASE = {
             'host':"192.168.2.97",
@@ -61,4 +62,16 @@ def synchronous_data():
     finally:
         cur.close()
         dbconn.close()
+    return True
+@shared_task
+def get_profile_of_order():
+    print(datetime.now())
+    get_profile('DE', 0)
+    get_profile('US', 0)
+    get_profile('CA', 0)
+    get_profile('JP', 0)
+    get_profile('DE', 0, 'Pending')
+    get_profile('US', 0, 'Pending')
+    get_profile('CA', 0, 'Pending')
+    get_profile('JP', 0, 'Pending')
     return True

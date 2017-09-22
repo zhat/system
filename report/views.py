@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect,Http404
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from .models import StatisticsData,StatisticsOfPlatform,ReportData
+from .models import StatisticsData,StatisticsOfPlatform,ReportData,AmazonProductBaseinfo
 # Create your views here.
 from django.db import connection, transaction
 from datetime import datetime,timedelta
@@ -10,15 +10,63 @@ import time
 import pandas as pd
 
 def index(request):
-    now = datetime.now()
-    day_before_yesterday = now - timedelta(days=2)
-    day_before_yesterday = day_before_yesterday.strftime("%Y-%m-%d")
-    days_date = now - timedelta(days=39)
-    days_date = days_date.strftime("%Y-%m-%d")
-    days = pd.date_range(start=days_date, end=day_before_yesterday)
+    """
+    :param request:
+    :return:
+    """
+    #有开始时间
+    #   有结束时间
+    #       判断结束时间是否大于开始时间30天
+    #       没有大于30天 按结束时间 大于30天报错
+    #   没有结束时间
+    #       判断开始时间30天后和今天前两天，取小值
+    #没有开始时间
+    #   有结束时间
+    #       开始时间为结束时间的前37天
+    #   没有结束时间
+    #       显示最近一个月数据 今天前2天到今天前39天
+    start = request.GET.get('start', '').strip()
+    end = request.GET.get('end', '').strip()
+    if start:           #有开始时间
+        start_date = datetime.strptime(start, '%Y-%m-%d')
+        start = start_date - timedelta(days=7)
+        start = start.strftime('%Y-%m-%d')
+        if end:
+            end_date = start_date - timedelta(days=-30)  # 开始时间30天后
+            end = datetime.strptime(end, '%Y-%m-%d')
+            end = end_date if end_date<end else end
+        else:
+            now = datetime.now()
+            end_date = now - timedelta(days=2)          #两天前
+            end = start_date-timedelta(days=-30)         #开始时间30天后
+            end = end_date if end_date<end else end       #两天前和开始时间30天后中的小值
+            end = end.strftime("%Y-%m-%d")
+    else:       #没有开始时间
+        if end:
+            end = datetime.strptime(end, '%Y-%m-%d')
+            start = end - timedelta(days=37)
+            start = start.strftime("%Y-%m-%d")
+            end = end.strftime("%Y-%m-%d")
+        else:
+            now = datetime.now()
+            end = now - timedelta(days=2)
+            end = end.strftime("%Y-%m-%d")
+            start = now - timedelta(days=39)
+            start = start.strftime("%Y-%m-%d")
+    # if start:
+    #     start = datetime.strptime(start,'%Y-%m-%d')
+    #     start = start - timedelta(days=7)
+    #     start = start.strftime('%Y-%m-%d')
+    # if not start and not end:
+    #     now = datetime.now()
+    #     end = now - timedelta(days=2)
+    #     end = end.strftime("%Y-%m-%d")
+    #     start = now - timedelta(days=39)
+    #     start = start.strftime("%Y-%m-%d")
+    days = pd.date_range(start=start, end=end)
     data_frame = pd.DataFrame(0, index=days, columns=['dollar_price', 'weekrate', 'sametermrate'])
 
-    so=StatisticsOfPlatform.objects.all()[:37]
+    so=StatisticsOfPlatform.objects.filter(date__range=(start,end))
     for product in so:
         data_frame.loc[product.date.strftime("%Y-%m-%d"), 'dollar_price'] = round(float(product.dollar_price), 2)
         data_frame.loc[product.date.strftime("%Y-%m-%d"), 'weekrate'] = round(float(product.weekrate) * 100, 2)
@@ -46,7 +94,7 @@ def product_list(request):
     the_day_before_yesterday = now - timedelta(days=2)
     the_day_before_yesterday = the_day_before_yesterday.strftime("%Y-%m-%d")
     rd_list = ReportData.objects.filter(date=the_day_before_yesterday).order_by("-price")[:50]
-    rd_list = sorted(rd_list,key=lambda rd:rd.sametermrate)
+    rd_list = sorted(rd_list,key=lambda rd:rd.weekrate)
     rise_top10 = rd_list[-10:]
     rise_top10.reverse()
     drop_top10 = rd_list[:10]
@@ -58,16 +106,32 @@ def product_detail(request):
     end = request.GET.get('end','').strip()
     if asin=="":
         raise Http404
-    if start:
-        start = datetime.strptime(start,'%Y-%m-%d')
-        start = start - timedelta(days=7)
+    if start:           #有开始时间
+        start_date = datetime.strptime(start, '%Y-%m-%d')
+        start = start_date - timedelta(days=7)
         start = start.strftime('%Y-%m-%d')
-    if not start or not end:
-        now = datetime.now()
-        end = now - timedelta(days=2)
-        end = end.strftime("%Y-%m-%d")
-        start = now - timedelta(days=39)
-        start = start.strftime("%Y-%m-%d")
+        if end:
+            end_date = start_date - timedelta(days=-30)  # 开始时间30天后
+            end = datetime.strptime(end, '%Y-%m-%d')
+            end = end_date if end_date < end else end
+        else:
+            now = datetime.now()
+            end_date = now - timedelta(days=2)          #两天前
+            end = start_date-timedelta(days=-30)         #开始时间30天后
+            end = end_date if end_date<end else end       #两天前和开始时间30天后中的小值
+            end = end.strftime("%Y-%m-%d")
+    else:       #没有开始时间
+        if end:
+            end = datetime.strptime(end, '%Y-%m-%d')
+            start = end - timedelta(days=37)
+            start = start.strftime("%Y-%m-%d")
+            end = end.strftime("%Y-%m-%d")
+        else:
+            now = datetime.now()
+            end = now - timedelta(days=2)
+            end = end.strftime("%Y-%m-%d")
+            start = now - timedelta(days=39)
+            start = start.strftime("%Y-%m-%d")
     days=pd.date_range(start=start,end=end)
     print(days)
     data_frame = pd.DataFrame(0,index=days,columns=['price','weekrate','sametermrate'])
@@ -100,6 +164,28 @@ def product_detail_date(request):
     date = request.GET.get('date', '').strip()
     if not asin or not date:
         raise Http404
-    a = time.strptime(date,'%Y%m%d')
-    date = datetime(*a[:3]).strftime("%Y-%m-%d")
-    return render(request,'report/product_date.html',{'asin':asin,'date':date})
+    product_info_list = []
+    date = datetime.strptime(date,'%Y%m%d')
+    product_base = AmazonProductBaseinfo.objects.filter(asin=asin)
+    for date in [date,date-timedelta(days=1),date-timedelta(days=7)]:
+        start = date
+        end = start + timedelta(hours=23, minutes=59, seconds=59)
+        date_str = date.strftime("%Y-%m-%d")
+        try:
+            product_info = product_base.filter(create_date__range=(start, end)).order_by(
+                '-create_date')[0]  #取当天最后一次数据
+            product_info_list.append({
+                'asin':asin,
+                'date':date_str,
+                'in_sale_price':product_info.in_sale_price,
+                'review_avg_star':product_info.review_avg_star
+            })
+        except IndexError:
+            product_info_list.append({
+                 'asin': asin,
+                 'date': date_str,
+                 'in_sale_price': "",
+                 'review_avg_star': ""
+             })
+
+    return render(request,'report/product_date.html',{'asin':asin,'product_info_list':product_info_list})

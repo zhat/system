@@ -13,3 +13,4 @@ DATABASES = {
         'PORT':'3306',
     }
 }
+BROKER_URL = 'amqp://lepython:qaz123456@192.168.2.97:5672/production'

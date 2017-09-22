@@ -309,3 +309,34 @@ class ReportData(models.Model):
     class Meta:
         verbose_name = "单品每日统计结果表"
         verbose_name_plural = "单品每日统计结果表"
+
+
+class AmazonProductBaseinfo(models.Model):
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=20, blank=True, null=True)
+    ref_id = models.CharField(max_length=20, blank=True, null=True)
+    seller_name = models.CharField(max_length=50, blank=True, null=True)
+    seller_url = models.CharField(max_length=100, blank=True, null=True)
+    brand = models.CharField(max_length=50, blank=True, null=True)
+    brand_url = models.CharField(max_length=100, blank=True, null=True)
+    is_fba = models.CharField(max_length=2, blank=True, null=True)
+    stock_situation = models.CharField(max_length=50, blank=True, null=True)
+    category_name = models.CharField(max_length=255, blank=True, null=True)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    in_sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    review_cnt = models.IntegerField(blank=True, null=True)
+    review_avg_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_5_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_4_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_3_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_2_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    percent_1_star = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cnt_qa = models.IntegerField(blank=True, null=True)
+    offers_url = models.CharField(max_length=200, blank=True, null=True)
+    lowest_price = models.DecimalField(max_digits=11, decimal_places=2, blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_product_baseinfo'

@@ -66,10 +66,6 @@
                         html+=params[int].seriesName+':'+params[int].data+'<br>';
                             }
                     }
-                    else{
-                       Xvalue = 'aaaa';
-                       //console.log(Xvalue);
-                    }
                     return html;
                     }
             },
@@ -219,8 +215,8 @@
             console.log(params);
             var value = params.name;
             if (value!=""){
-{#                    var date = value.split('/').join('');#}
-{#                   window.location="{% url 'report:product_detail_date' %}"+"?asin="+GetQueryString("asin")+"&date="+date;#}
+                    var date = value.split('/').join('');
+                   window.location="{% url 'report:product_detail_date' %}"+"?asin="+GetQueryString("asin")+"&date="+date;
                }
         });
         $('#li_product').attr('class','active');

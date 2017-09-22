@@ -167,11 +167,18 @@ class GetStatisticsDataFromOMS():
             box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
             region = im.crop(box)
             region.save(image_path_png)
-            driver.find_element_by_id("valCode").clear()
+            username = driver.find_element_by_id("username")
+            password = driver.find_element_by_id("password")
+            username.clear()
+            username.send_keys(settings.LE_USERNAME)
+            password.clear()
+            password.send_keys(settings.LE_PASSWORD)
+            val_code = driver.find_element_by_id("valCode")
+            val_code.clear()
             img_code = img_to_str(image_path_png)
             if not img_code:
                 img_code = "abcd"
-            driver.find_element_by_id("valCode").send_keys(img_code)
+            val_code.send_keys(img_code)
             time.sleep(3)
             driver.find_element_by_xpath("//input[@type='submit']").click()
             time.sleep(5)
@@ -180,23 +187,25 @@ class GetStatisticsDataFromOMS():
 
 def get_data(date):
     try:
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_experimental_option('prefs', {
-            'credentials_enable_service': True,
-            'profile': {
-                'password_manager_enabled': True
-            }
-        })
-        # 读取本地信息
-        chrome_options.add_argument("--user-data-dir=" + USER_DATA_DIR)
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        # chrome_options = webdriver.ChromeOptions()
+        # chrome_options.add_experimental_option('prefs', {
+        #     'credentials_enable_service': True,
+        #     'profile': {
+        #         'password_manager_enabled': True
+        #     }
+        # })
+        # # 读取本地信息
+        # chrome_options.add_argument("--user-data-dir=" + USER_DATA_DIR)
+        # driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver = webdriver.Chrome()
         driver.get(BASE_URL)
         time.sleep(6)
         now = datetime.now()
         gs = GetStatisticsDataFromOMS(date)
         gs.login(driver)
-        result = gs.get_data(driver)
-        gs.clean_data()
+        #result = gs.get_data(driver)
+        #gs.clean_data()
+        time.sleep(1000)
     finally:
         driver.quit()
 

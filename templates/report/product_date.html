@@ -6,7 +6,24 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-        <h1>{{ date }}</h1>
         <h1>{{ asin }}</h1>
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>单价</th>
+                <th>评分</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in product_info_list %}
+                <tr>
+                    <td>{{ product.date }}</td>
+                    <td>{{ product.in_sale_price }}</td>
+                    <td>{{ product.review_avg_star }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 {% endblock context %}

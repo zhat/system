@@ -1,18 +1,45 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}首页{% endblock title %}
+{% block title %}单品信息{% endblock title %}
 {% block css %}
 
 {% endblock css %}
 {% block context %}
     <div class="container">
-        <h1>{{ asin }}</h1>
+        <h2 class="text-center">单品信息</h2>
+        <br />
+        <form class="form-horizontal"  action="" method="GET">
+        <div class="row">
+            <div class="form-group">
+                <label for="asin" class="col-md-1 control-label">asin</label>
+                <div class="col-md-3">
+                    {% if profile %}
+                        <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />
+                    {% else %}
+                        <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />
+                    {% endif %}
+                </div>
+                <label for="date" class="col-md-1 control-label">时间</label>
+                <div class="col-md-3">
+                    <div class="input-daterange input-group" id="datepicker">
+                        <input type="text" class="form-control" name="date" id="date" data-date-format="yyyy-mm-dd" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+                </div>
+            </div>
+        </div>
+        </form>
+        <br />
+        {% if asin %}
         <table class="table table-bordered  table-striped">
             <thead>
             <tr>
                 <th>日期</th>
                 <th>单价</th>
                 <th>评分</th>
+                <th>是否有库存</th>
             </tr>
             </thead>
             <tbody>
@@ -21,9 +48,41 @@
                     <td>{{ product.date }}</td>
                     <td>{{ product.in_sale_price }}</td>
                     <td>{{ product.review_avg_star }}</td>
+                    <td>{{ product.stock }}</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
+        {% endif %}
     </div>
 {% endblock context %}
+{% block js %}
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script>
+    $('#li_product_detail_date').attr('class','active');
+    $('#date').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+});
+    function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    }
+    function doQuery(form) {
+        document.myform.submit();
+    };
+    </script>
+{% endblock js %}

@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}首页{% endblock title %}
+{% block title %}站点统计{% endblock title %}
 {% block css %}
     <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
 {% endblock css %}
 {% block context %}
     <div class="container">
+    <h2 class="text-center">站点统计</h2>
     <br />
     <form class="form-horizontal"  action="{% url 'report:index' %}" method="GET">
     <div class="row">

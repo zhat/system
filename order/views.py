@@ -12,8 +12,6 @@ def search(request):
     profile = request.GET.get('profile','').strip()
     if profile:
         order_list = OrderData.objects.filter(profile=profile).all().order_by('-order_time')
-        if not order_list:
-            order_list = OrderData.objects.filter(profile=profile).all().order_by('-order_time')
         paginator = Paginator(order_list, 10)  # Show 25 contacts per page
         page = request.GET.get('page')
         try:

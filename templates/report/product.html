@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}首页{% endblock title %}
+{% block title %}单品统计{% endblock title %}
 {% block css %}
     <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
 {% endblock css %}
 {% block context %}
     <div class="container">
+    <h2 class="text-center">单品统计</h2>
     <br />
     <form class="form-horizontal"  action="{% url 'report:product_detail' %}" method="GET">
     <div class="row">
@@ -35,7 +36,7 @@
     </div>
     <br />
     <br />
-    <div class="container-fluid" id="main" style="height:600px;"></div>
+    <div class="container-fluid" id="main" style="height:600px;" {% if not asin %}hidden{% endif %}></div>
 {% endblock context %}
 {% block js %}
     <script src="{% static 'js/echarts.js' %}"></script>
@@ -215,11 +216,11 @@
             console.log(params);
             var value = params.name;
             if (value!=""){
-                    var date = value.split('/').join('');
+                    var date = value.split('/').join('-');
                    window.location="{% url 'report:product_detail_date' %}"+"?asin="+GetQueryString("asin")+"&date="+date;
                }
         });
-        $('#li_product').attr('class','active');
+        $('#li_product_detail').attr('class','active');
 {#        function mousedown(params)#}
 {#        {#}
 {#            if(params.length>0){#}

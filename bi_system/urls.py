@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url,include
 from django.contrib import admin
-from order import views as order_views
+from users import views as users_views
 urlpatterns = [
-    url(r'^$',order_views.search),
+    url(r'^$',users_views.index,name="index"),
     url(r'^admin/', admin.site.urls),
     url(r'^spider/', include('spider.urls',namespace='spider')),
     url(r'^users/',include('users.urls',namespace='users')),

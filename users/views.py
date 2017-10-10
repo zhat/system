@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 def logout_view(request):
     """注销用户"""
     logout(request)
-    return HttpResponseRedirect(reverse('order:search'))
+    return HttpResponseRedirect(reverse('users:login'))
 
 def register(request):
     """注册新用户"""
@@ -60,3 +60,6 @@ def changepwd(request):
     else:
         uf = ChangeForm()
         return render(request,'users/change.html', {'uf': uf})
+
+def index(request):
+    return render(request,'users/index.html',{})

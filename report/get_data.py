@@ -9,10 +9,10 @@ import pymysql
 from datetime import datetime,timedelta
 import pytesseract
 from PIL import Image
-from django.conf import settings
+#from django.conf import settings
 #from shibie import GetImageDate
 
-USER_DATA_DIR = settings.CHROME_USER_DATA_DIR
+#USER_DATA_DIR = settings.CHROME_USER_DATA_DIR
 BASE_URL = "http://192.168.2.99:9080/ocs/index"
 DATABASE = {
             'host':"192.168.2.97",
@@ -57,15 +57,16 @@ class GetStatisticsDataFromOMS():
         page = 1
         short_url = urlunparse(url_parse[:3] + ('',) * 3)
 
-        target_url = "http://192.168.2.99:9080/ocs/salesStatistics/findAll"
+        #target_url = "http://192.168.2.99:9080/ocs/salesStatistics/findAll"
+        target_url = "http://192.168.2.99:9080/ocs/orderQuery/findAll"
         user_agent = r'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                  r'Chrome/60.0.3112.113 Safari/537.36'
         headers = {'cookie':cookiestr,
-               'User-Agent':user_agent,
-               'Referer':"http://192.168.2.99:9080/ocs/salesStatistics/tolist",
-               'Host':host,
-               'Origin':origin,
-               'X-Requested-With':'XMLHttpRequest',
+                'User-Agent':user_agent,
+                'Referer':"http://192.168.2.99:9080/ocs/salesStatistics/tolist",
+                'Host':host,
+                'Origin':origin,
+                'X-Requested-With':'XMLHttpRequest',
                }
 
         sql_insert = []
@@ -94,8 +95,8 @@ class GetStatisticsDataFromOMS():
             except urllib.error.HTTPError as e:
                 print(e)
                 return ""
-
             result = json.loads(result.decode('utf-8'))
+            #print(result)
             self.total = result['total']
             self.source = result['source']
             footer = result['footer']
@@ -119,6 +120,7 @@ class GetStatisticsDataFromOMS():
                 #       float(count_data['weekrate']),float(count_data['monthrate']),float(count_data['status']),
                 #       float(count_data['sametermrate'][:-1]),float(count_data['price'][:-1]),
                 #       float(count_data['count'][:-1]))
+                print(count_data)
                 insert_url=r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
                            r'site_price,dollar_price,RMB_price,sametermrate,weekrate,monthrate) ' \
                            r'VALUES("%s","%s",%d,%d,%f,%f,%f,%f,%f,%f);'%(self.date,
@@ -170,9 +172,11 @@ class GetStatisticsDataFromOMS():
             username = driver.find_element_by_id("username")
             password = driver.find_element_by_id("password")
             username.clear()
-            username.send_keys(settings.LE_USERNAME)
+            #username.send_keys(settings.LE_USERNAME)
+            username.send_keys("yaoxuzhao")
             password.clear()
-            password.send_keys(settings.LE_PASSWORD)
+            #password.send_keys(settings.LE_PASSWORD)
+            password.send_keys("123")
             val_code = driver.find_element_by_id("valCode")
             val_code.clear()
             img_code = img_to_str(image_path_png)
@@ -203,9 +207,9 @@ def get_data(date):
         now = datetime.now()
         gs = GetStatisticsDataFromOMS(date)
         gs.login(driver)
-        #result = gs.get_data(driver)
-        #gs.clean_data()
-        time.sleep(1000)
+        result = gs.get_data(driver)
+        gs.clean_data()
+        #time.sleep(1000)
     finally:
         driver.quit()
 

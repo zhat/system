@@ -1,6 +1,8 @@
 import time
+import os
+import xlrd
 from celery import shared_task
-from .models import StatisticsData,ReportData,AsinInfo,StatisticsOfPlatform
+from .models import StatisticsData,ReportData,AsinInfo,StatisticsOfPlatform,ProductStock
 from datetime import datetime,timedelta
 from .get_data import get_data
 
@@ -38,7 +40,7 @@ def clean():
     :return:
     """
     now = datetime.now()
-    days = 32
+    days = 62
     while days > 1:
         date = now - timedelta(days=days)
         date = date.strftime("%Y-%m-%d")
@@ -109,8 +111,39 @@ def get_sum_route(date):
             sp.sametermrate = 0
         seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago)
         if seven_days_ago_sp and seven_days_ago_sp[0].dollar_price:
-            sp.weekrate = round(sp.dollar_price/seven_days_ago_sp[0].dollar_price,2)
+            sp.weekrate = round(sp.dollar_price/seven_days_ago_sp[0].dollar_price,4)
         else:
             sp.weekrate=0
 
         sp.save()
+
+
+def get_stock():
+    now = datetime.now()
+    i = 30
+    while i>=0:
+        date = now - timedelta(days=i)
+        i-=1
+        now_str = date.strftime("%Y%m%d")
+        print(now_str)
+        file_name = "库存管理总表{}.xlsx".format(now_str)
+        base_path = r"E:\email"
+        file_path = os.path.join(base_path,file_name)
+        print(file_path)
+        if not os.path.exists(file_path):
+            continue
+        date_str = date.strftime("%Y-%m-%d")
+        if ProductStock.objects.filter(date=date_str):
+            continue
+        print(date_str)
+        data = xlrd.open_workbook(file_path)
+        table = data.sheets()[0]
+        platform = "US"
+        station = "www.amazon.com"
+        sku_list = [cell.value if isinstance(cell.value,str) else str(int(cell.value)) for cell in table.col(0)]
+        quantity_list = [int(cell.value) if isinstance(cell.value,float) else cell.value for cell in table.col(5)]
+        reserved_list = [int(cell.value) if isinstance(cell.value, float) else cell.value for cell in table.col(6)]
+        for sku,quantity,reserved in zip(sku_list[2:],quantity_list[2:],reserved_list[2:]):
+            stock = quantity+reserved
+            ProductStock.objects.create(date=date_str,sku=sku,stock=stock,quantity=quantity,reserved=reserved,
+                                        platform=platform,station=station)

@@ -3,15 +3,9 @@ from celery import shared_task
 from datetime import datetime,timedelta
 import pymysql
 from .get_profile_of_order import get_profile
+from django.conf import settings
 
-DATABASE = {
-            'host':"192.168.2.97",
-            'database':"bi_system_dev",
-            'user':"lepython",
-            'password':"qaz123456",
-            'port':3306,
-            'charset':'utf8'
-}
+DATABASE = settings.TASKS_DATABASE
 
 @shared_task
 def synchronous_data():

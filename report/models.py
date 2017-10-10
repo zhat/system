@@ -310,6 +310,22 @@ class ReportData(models.Model):
         verbose_name = "单品每日统计结果表"
         verbose_name_plural = "单品每日统计结果表"
 
+class ProductStock(models.Model):
+    date = models.DateField("日期")
+    sku = models.CharField("sku", max_length=128, null=True)
+    asin = models.CharField("asin", max_length=128, null=True)
+    platform = models.CharField("账号", max_length=32, null=True)
+    station = models.CharField("站点", max_length=64, null=True)
+    stock = models.IntegerField("库存数",null=True)
+    quantity = models.IntegerField(null= True)
+    reserved = models.IntegerField(null=True)
+    create_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.sku
+    class Meta:
+        verbose_name = "库存信息表"
+        verbose_name_plural = "库存信息表"
 
 class AmazonProductBaseinfo(models.Model):
     zone = models.CharField(max_length=8, blank=True, null=True)
@@ -340,3 +356,4 @@ class AmazonProductBaseinfo(models.Model):
     class Meta:
         managed = False
         db_table = 'amazon_product_baseinfo'
+

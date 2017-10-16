@@ -121,13 +121,28 @@ class GetStatisticsDataFromOMS():
                 #       float(count_data['sametermrate'][:-1]),float(count_data['price'][:-1]),
                 #       float(count_data['count'][:-1]))
                 print(count_data)
-                insert_url=r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
-                           r'site_price,dollar_price,RMB_price,sametermrate,weekrate,monthrate) ' \
-                           r'VALUES("%s","%s",%d,%d,%f,%f,%f,%f,%f,%f);'%(self.date,
-                            count_data['currencycode'],count_data['deduction'],count_data['taxrate'],
-                            float(count_data['weekrate']),float(count_data['monthrate']),float(count_data['status']),
-                            float(count_data['sametermrate'][:-1]),float(count_data['price'][:-1]),
-                            float(count_data['count'][:-1]))
+                try:
+                    insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
+                                 r'site_price,dollar_price,RMB_price) ' \
+                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f);' % (self.date,
+                                                                         count_data['currencycode'],
+                                                                         count_data['deduction'],
+                                                                         count_data['taxrate'],
+                                                                         float(count_data['weekrate']),
+                                                                         float(count_data['monthrate']),
+                                                                         float(count_data['status']),
+                                                                         )
+                except Exception as e:
+                    print(e)
+                    insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
+                                 r'site_price,dollar_price,RMB_price) ' \
+                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f);' % (self.date,
+                                                                         count_data['deduction'], count_data['taxrate'],
+                                                                         count_data['price'],
+                                                                         float(count_data['weekrate']),
+                                                                         float(count_data['monthrate']),
+                                                                         float(count_data['status']),
+                                                                         )
                 #print(insert_url)
                 sql_insert.append(insert_url)
                 break

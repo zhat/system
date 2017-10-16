@@ -74,7 +74,6 @@ def index(request):
                                                'max_rate': max_rate, 'rate_interval': rate_interval,
                                                'max_price': max_price, 'interval': interval})
 
-
 def date_test(request):
     return render(request,'report/double_date.html',{})
 
@@ -163,15 +162,20 @@ def product_detail_date(request):
     else:
         date = datetime.strptime(date_str, '%Y-%m-%d')
     product_info_list = []
-
+    product_list = []
     product_base = AmazonProductBaseinfo.objects.filter(asin=asin)
     for date in [date,date-timedelta(days=1),date-timedelta(days=7)]:
         start = date
         end = start + timedelta(hours=23, minutes=59, seconds=59)
         date_str = date.strftime("%Y-%m-%d")
+        product = ReportData.objects.filter(asin=asin).filter(date=date_str).first()
+        product_list.append(product)
+
+        #获取某天的价格、评分和库存
         try:
             product_info = product_base.filter(create_date__range=(start, end)).order_by(
                 '-create_date')[0]  #取当天最后一次数据
+
 
             product_info_list.append({
                 'asin':asin,
@@ -197,4 +201,5 @@ def product_detail_date(request):
         else:
             product_info_list[-1]['stock'] = 0
 
-    return render(request,'report/product_date.html',{'asin':asin,'product_info_list':product_info_list})
+    return render(request,'report/product_date.html',{'asin':asin,'product_info_list':product_info_list,
+                                                      'product_list':product_list})

@@ -23,4 +23,5 @@ urlpatterns = [
     url(r'^users/',include('users.urls',namespace='users')),
     url(r'^order/',include('order.urls',namespace='order')),
     url(r'^report/',include('report.urls',namespace='report')),
+    url(r'^monitor/',include('monitor.urls',namespace='monitor')),
 ]

@@ -57,6 +57,7 @@ def synchronous_data():
         cur.close()
         dbconn.close()
     return True
+
 @shared_task
 def get_profile_of_order():
     print(datetime.now())

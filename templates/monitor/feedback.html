@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Feedback{% endblock title %}
+{% block css %}
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+    <style type="text/css">
+        .table tbody tr td{
+            vertical-align: middle;
+        }
+    </style>
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    <h2 class="text-center">Feedback统计</h2>
+    <br />
+    <form class="form-horizontal"  action="{% url 'report:product_detail' %}" method="GET">
+    <div class="row">
+        <div class="form-group">
+            <label for="asin" class="col-md-1 control-label">站点</label>
+            <div class="col-md-3">
+                {% if profile %}
+                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />
+                {% else %}
+                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />
+                {% endif %}
+            </div>
+            <label for="date" class="col-md-1 control-label">时间</label>
+            <div class="col-md-5">
+                <div class="input-daterange input-group" id="datepicker">
+                    <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+                    <span class="input-group-addon">至</span>
+                    <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+            </div>
+        </div>
+    </div>
+    </form>
+    <br />
+    <table class="table table-bordered  table-striped">
+            <h4 class="text-center">相关信息</h4>
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>Station</th>
+                <th>店铺</th>
+                <th>最近30天</th>
+                <th>最近90天</th>
+                <th>最近12个月</th>
+                <th>全部</th>
+                <th>最近1天</th>
+                <th>最近1周</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for feedback_count in feedback_count_list %}
+                <tr>
+                {% if forloop.first %}
+                    <td rowspan="4">{{ feedback_count.date }}</td>
+                    <td rowspan="4">{{ feedback_count.station }}</td>
+                {% endif %}
+                    <td>{{ feedback_count.store }}</td>
+                    <td>{{ feedback_count.last_30_days }}</td>
+                    <td>{{ feedback_count.last_90_days }}</td>
+                    <td>{{ feedback_count.last_12_months }}</td>
+                    <td>{{ feedback_count.lifetime }}</td>
+                    <td>{{ feedback_count.last_day }}</td>
+                    <td>{{ feedback_count.last_week }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    <br />
+    </div>
+    <div class="container-fluid" id="main" style="height:600px;"></div>
+    <div class="container-fluid" id="main2" style="height:600px;"></div>
+{% endblock context %}
+{% block js %}
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        //myChart.title = '折柱混合';
+        option = {
+             title: {
+                top: 0,
+                text: '总数',
+                left: 'center',
+                textStyle: {
+                    color: '#000'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    crossStyle: {
+                        color: '#999'
+                    }
+                },
+                formatter:function(params){
+                    var html = '';
+                    if(params.length>0){
+                        Xvalue = params[0].axisValue;
+                        //console.log(Xvalue);
+                        //console.log(params);
+                        for ( var int = 0; int < params.length; int++) {
+                        html+=params[int].seriesName+':'+params[int].data+'<br>';
+                            }
+                    }
+                    return html;
+                    }
+            },
+            label:{
+                normal:{
+                show: false,
+                position: 'inside'}
+            },
+            toolbox: {
+                feature: {
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
+            legend: {
+                right:'20%',
+                data:{{ store_list|safe }}
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false,
+                    //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
+                    data:{{  date_list|safe }},
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '销售额(美元)',
+                    min: 0,
+                    max: 20000,
+                    interval: 2000,
+                    axisLabel: {
+                    }
+                }
+            ],
+            series: [
+                {% for lifetime in lifetime_list %}
+                {
+                    name:'{{ lifetime.store }}',
+                    type:'line',
+                    data:{{ lifetime.lifetime }},
+                    itemStyle:{
+                        normal: {
+{#                        label: {#}
+{#                            show: true,#}
+{#                            position: 'top',#}
+{#                            textStyle: {#}
+{#                                color: '#615a5a'#}
+{#                            },#}
+{#                            formatter:function(params){#}
+{#                            if(params.value==0){#}
+{#                            return '';#}
+{#                            }else#}
+{#                            {#}
+{#                                return params.value;#}
+{#                            }#}
+{#                            }#}
+{#                            }#}
+                            }
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+        $('#li_product_detail').attr('class','active');
+{#        function mousedown(params)#}
+{#        {#}
+{#            if(params.length>0){#}
+{#                var value = params[0].axisValue;#}
+{#                if (value!=""){#}
+{#                    var date = value.split('/').join('');#}
+{#                    window.location="{% url 'report:product_detail_date' %}"+"?asin="+GetQueryString("asin")+"&date="+date;#}
+{#                }#}
+{#            }#}
+{#            else{#}
+{#                return '';#}
+{#            }#}
+{#        };#}
+        function GetQueryString(name) {
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)return  unescape(r[2]); return null;
+        };
+    </script>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart2 = echarts.init(document.getElementById('main2'));
+
+        // 指定图表的配置项和数据
+        //myChart.title = '折柱混合';
+        option = {
+             title: {
+                top: 0,
+                text: '上周数据',
+                left: 'center',
+                textStyle: {
+                    color: '#000'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    crossStyle: {
+                        color: '#999'
+                    }
+                },
+                formatter:function(params){
+                    var html = '';
+                    if(params.length>0){
+                        Xvalue = params[0].axisValue;
+                        //console.log(Xvalue);
+                        //console.log(params);
+                        for ( var int = 0; int < params.length; int++) {
+                        html+=params[int].seriesName+':'+params[int].data+'<br>';
+                            }
+                    }
+                    return html;
+                    }
+            },
+            label:{
+                normal:{
+                show: false,
+                position: 'inside'}
+            },
+            toolbox: {
+                feature: {
+                    dataView: {show: true, readOnly: false},
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
+            legend: {
+                 right:"20%",
+                data:{{ store_list|safe }}
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false,
+                    //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
+                    data:{{  date_list|safe }},
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '销售额(美元)',
+                    min: 0,
+                    max: 200,
+                    interval: 20,
+                    axisLabel: {
+                    }
+                }
+            ],
+            series: [
+                {% for last_week in last_week_list %}
+                {
+                    name:'{{ last_week.store }}',
+                    type:'line',
+                    data:{{ last_week.last_week }},
+                    itemStyle:{
+                        normal: {
+{#                        label: {#}
+{#                            show: true,#}
+{#                            position: 'top',#}
+{#                            textStyle: {#}
+{#                                color: '#615a5a'#}
+{#                            },#}
+{#                            formatter:function(params){#}
+{#                            if(params.value==0){#}
+{#                            return '';#}
+{#                            }else#}
+{#                            {#}
+{#                                return params.value;#}
+{#                            }#}
+{#                            }#}
+{#                            }#}
+                            }
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart2.setOption(option);
+    </script>
+    <script type="text/javascript">
+$('#qBeginTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+}).on('changeDate',function(e){
+    var startTime = e.date;
+    $('#qEndTime').datetimepicker('setStartDate',startTime);
+});
+//结束时间：
+$('#qEndTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+}).on('changeDate',function(e){
+    var endTime = e.date;
+    $('#qBeginTime').datetimepicker('setEndDate',endTime);
+});
+    function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    }
+    function doQuery(form) {
+        if (form.asin.value==""){
+            form.asin.value = GetQueryString('asin');
+        }
+        document.myform.submit();
+    };
+    </script>
+{% endblock js %}

@@ -113,13 +113,19 @@
                                 <li  class="" id="li_product_detail_date"><a href="{% url 'report:product_detail_date' %}">单品信息</a></li>
                             </ul>
                         </li>
-                        <li  class="" id="li_station"><a href="{% url 'report:test' %}">test</a></li>
+{#                        <li  class="" id="li_station"><a href="{% url 'report:test' %}">test</a></li>#}
 {#                        <li  class="" id="li_station"><a href="{% url 'report:index' %}">站点统计</a></li>#}
 {#                        <li  class="" id="li_product"><a href="{% url 'report:product_list' %}">单品统计</a></li>#}
 {#                        <li  class="" id="li_station"><a href="{% url 'report:test' %}">test</a></li>#}
                     </ul>
                   </li>
               {% endif %}
+                <li>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">数据监控<span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                      <li class="" id="li_feedback"><a href="{% url 'monitor:feedback' %}">Feedback</a></li>
+                  </ul>
+              </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}

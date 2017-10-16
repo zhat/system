@@ -27,3 +27,9 @@ def get_order_info(id):
     except:
         pass
     return "执行结束"
+
+def get_order_with_asin(asin,profile,zone):
+    #先判断profile是否有对应的orderid
+    #从amazon_order_item查出order_id
+    #判断order_id_list 中是否有
+    pass

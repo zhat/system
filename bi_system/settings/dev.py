@@ -24,6 +24,7 @@ TASKS_DATABASE = {
 LOGIN_REDIRECT_URL="/"
 BROKER_URL = 'amqp://lepython:qaz123456@192.168.2.97:5672/dev'
 INSTALLED_APPS.append('report')
+INSTALLED_APPS.append('monitor')
 CHROME_USER_DATA_DIR = r"C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data"
 LE_USERNAME = "yaoxuzhao"
 LE_PASSWORD = "123"

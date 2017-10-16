@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}单品信息{% endblock title %}
 {% block css %}
-
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
 {% endblock css %}
 {% block context %}
     <div class="container">
@@ -13,8 +13,8 @@
             <div class="form-group">
                 <label for="asin" class="col-md-1 control-label">asin</label>
                 <div class="col-md-3">
-                    {% if profile %}
-                        <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />
+                    {% if asin %}
+                        <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ asin }}" />
                     {% else %}
                         <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />
                     {% endif %}
@@ -34,6 +34,41 @@
         <br />
         {% if asin %}
         <table class="table table-bordered  table-striped">
+            <h4 class="text-center">销售信息</h4>
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>asin</th>
+                <th>账号</th>
+                <th>站点</th>
+                <th>订单数</th>
+                <th>销量</th>
+                <th>币种</th>
+                <th>销售额</th>
+                <th>同比</th>
+                <th>周环比</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in product_list %}
+                <tr>
+                    <td>{{ product.date }}</td>
+                    <td>{{ product.asin }}</td>
+                    <td>{{ product.platform }}</td>
+                    <td>{{ product.station }}</td>
+                    <td>{{ product.qty }}</td>
+                    <td>{{ product.count }}</td>
+                    <td>{{ product.currencycode }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.sametermrate }}</td>
+                    <td>{{ product.weekrate }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <br />
+        <table class="table table-bordered  table-striped">
+            <h4 class="text-center">相关信息</h4>
             <thead>
             <tr>
                 <th>日期</th>
@@ -53,6 +88,24 @@
             {% endfor %}
             </tbody>
         </table>
+            <br />
+            <h4 class="text-center">分析结果</h4>
+            <h4>本次仿真用了Proteus软件，Proteus(海神)的ISIS是一款Labcenter出品的电路分析实物仿真系统，可仿真各种电路和IC，
+                并支持单片机，元件库齐全，使用方便，是不可多得的专业的单片机软件仿真系统[17]。
+　　该软件的特点：
+　　             （1）全部满足我们提出的单片机软件仿真系统的标准，并在同类产品中具有明显的优势。
+                （2）具有模拟电路仿真、数字电路仿真、单片机及其外围电路组成的系统的仿真、RS一232动态仿真、
+                1 C调试器、SPI调试器、键盘和LCD系统仿真的功能；有各种虚拟仪器，如示波器、逻辑分析仪、信号发生器等。
+                （3）目前支持的单片机类型有：68000系列、8051系列、AVR系列、PIC12系列、PIC16系列、PIC18系列、Z80系列、
+                HC11系列以及各种外围芯片。
+                （4）支持大量的存储器和外围芯片。总之该软件是一款集单片机和SPICE分析于一身的仿真软件，功能极其强大 ，可仿真51、AVR、PIC。
+Proteus与其它单片机仿真软件不同的是，它不仅能仿真单片机CPU的工作情况，也能仿真单片机外围电路或没有单片机参与的其它电路的工作情况
+                。因此在仿真和程序调试时，关心的不再是某些语句执行时单片机寄存器和存储器内容的改变，
+                而是从工程的角度直接看程序运行和电路工作的过程和结果。对于这样的仿真实验，从某种意义上讲，
+                是弥补了实验和工程应用间脱节的矛盾和现象[18]。
+            本次仿真用了Proteus软件，Proteus(海神)的ISIS是一款Labcenter出品的电路分析实物仿真系统，
+                可仿真各种电路和IC，并支持单片机，元件库齐全，使用方便，是不可多得的专业的单片机软件仿真系统[17]。
+            </h4>
         {% endif %}
     </div>
 {% endblock context %}

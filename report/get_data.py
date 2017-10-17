@@ -9,19 +9,20 @@ import pymysql
 from datetime import datetime,timedelta
 import pytesseract
 from PIL import Image
-#from django.conf import settings
+from django.conf import settings
 #from shibie import GetImageDate
 
 #USER_DATA_DIR = settings.CHROME_USER_DATA_DIR
 BASE_URL = "http://192.168.2.99:9080/ocs/index"
-DATABASE = {
-            'host':"192.168.2.97",
-            'database':"bi_system_dev",
-            'user':"lepython",
-            'password':"qaz123456",
-            'port':3306,
-            'charset':'utf8'
-}
+DATABASE = settings.TASKS_DATABASE
+#DATABASE = {
+#            'host':"192.168.2.97",
+#            'database':"bi_system_dev",
+#            'user':"lepython",
+#            'password':"qaz123456",
+#            'port':3306,
+#            'charset':'utf8'
+#}
 
 
 def img_to_str(image_path):
@@ -187,11 +188,11 @@ class GetStatisticsDataFromOMS():
             username = driver.find_element_by_id("username")
             password = driver.find_element_by_id("password")
             username.clear()
-            #username.send_keys(settings.LE_USERNAME)
-            username.send_keys("yaoxuzhao")
+            username.send_keys(settings.LE_USERNAME)
+            #username.send_keys("yaoxuzhao")
             password.clear()
-            #password.send_keys(settings.LE_PASSWORD)
-            password.send_keys("123")
+            password.send_keys(settings.LE_PASSWORD)
+            #password.send_keys("123")
             val_code = driver.find_element_by_id("valCode")
             val_code.clear()
             img_code = img_to_str(image_path_png)

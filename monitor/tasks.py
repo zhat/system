@@ -1,10 +1,9 @@
-import time
-import os
 import random
 from celery import shared_task
 from .models import Station,Feedback
 from datetime import datetime,timedelta
 
+@shared_task
 def insert_data():
     station = Station.objects.filter(station="amazon.com").first()
     now = datetime.now()

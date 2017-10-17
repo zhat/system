@@ -2,8 +2,9 @@ import time
 from celery import shared_task
 from datetime import datetime,timedelta
 import pymysql
-from .get_profile_of_order import get_profile
+from .get_profile_of_order import get_profile,AmazonOrderManagerCrawlFromOrderId
 from django.conf import settings
+from .models import OrderData
 
 DATABASE = settings.TASKS_DATABASE
 
@@ -70,3 +71,30 @@ def get_profile_of_order():
     get_profile('CA', 0, 'Pending')
     get_profile('JP', 0, 'Pending')
     return True
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
+
+@shared_task
+def get_order_with_asin(asin, profile, zone):
+    # 先判断profile是否有对应的orderid
+    # 从amazon_order_item查出order_id
+    # 判断order_id_list 中是否有
+    if OrderData.objects.filter(profile=profile):
+        return True
+    sqlcmd = r'SELECT order_id FROM order_orderdata WHERE `profile` IS NULL AND zone = "%s" ' \
+    r'AND order_id IN (SELECT ao.order_id FROM `amazon_order_item` aot ' \
+    r'JOIN `amazon_order` ao ON aot.parent_id = ao.id ' \
+    r'WHERE aot.ASIN = "%s");'%(zone,asin)
+    print(sqlcmd)
+    dbconn = pymysql.connect(**DATABASE)
+    cur = dbconn.cursor()
+    effect_row = cur.execute(sqlcmd)
+    order_id_list = cur.fetchall()
+    order_id_list = [x for j in order_id_list for x in j]
+    amzCrawl = AmazonOrderManagerCrawlFromOrderId(zone,200)
+    for order_list in chunks(order_id_list,300):
+        print(order_list)
+        amzCrawl.getOrderInfo(order_list)

@@ -79,7 +79,7 @@ def date_test(request):
 
 @login_required
 def product_list(request):
-    date = request.GET.get('start', '').strip()
+    date = request.GET.get('date', '').strip()
     if not date:
         now = datetime.now()
         the_day_before_yesterday = now - timedelta(days=2)
@@ -90,7 +90,7 @@ def product_list(request):
     rise_top10 = rd_list[-10:]
     rise_top10.reverse()
     drop_top10 = rd_list[:10]
-    return render(request,'report/product_list.html',{'rise_top10':rise_top10,'drop_top10':drop_top10})
+    return render(request,'report/product_list.html',{'date':date,'rise_top10':rise_top10,'drop_top10':drop_top10})
 
 @login_required
 def product_detail(request):

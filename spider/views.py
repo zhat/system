@@ -6,9 +6,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from .models import OrderCrawl,CountOfDay
-from .permission import check_permission
+from order.tasks import get_order_with_asin
 from .forms import OrderCrawlForm
-from .tasks import get_order_info
 # Create your views here.
 
 def index(request):
@@ -39,7 +38,7 @@ def order_add(request):
             new_order.user = request.user
             new_order.add_time = datetime.now()
             new_order.save()
-            get_order_info.delay(new_order.id)
+            get_order_with_asin.delay(new_order.asin,new_order.profile,new_order.zone)
     return HttpResponseRedirect(reverse('spider:orders'))
 
 def count(request):

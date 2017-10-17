@@ -6,7 +6,7 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-    <h2 class="text-center">站点统计</h2>
+    <h2 class="text-center">站点统计-US</h2>
     <br />
     <form class="form-horizontal"  action="{% url 'report:index' %}" method="GET">
     <div class="row">
@@ -150,6 +150,14 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+        myChart.on('mousedown', function (params) {
+            console.log(params);
+            var value = params.name;
+            if (value!=""){
+                    var date = value.split('/').join('-');
+                   window.location="{% url 'report:product_list' %}"+"?date="+date;
+               }
+        });
         $('#li_station').attr('class','active');
     </script>
     <script type="text/javascript">

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}单品波动排行{% endblock title %}
+
 {% block css %}
     <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
     <style type="text/css">
@@ -12,7 +13,7 @@
 
 {% block context %}
     <div class="container">
-        <h2 class="text-center">单品波动排行</h2>
+        <h2 class="text-center">{{ date }}单品波动排行-US</h2>
         <br />
         <form class="form-horizontal"  action="{% url 'report:product_list' %}" method="GET">
         <div class="row">
@@ -28,7 +29,7 @@
                 <label for="date" class="col-md-5 control-label">日期</label>
                 <div class="col-md-3">
                     <div class="input-daterange input-group" id="datepicker">
-                        <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+                        <input type="text" class="form-control" name="date" id="qBeginTime" data-date-format="yyyy-mm-dd" />
                     </div>
                 </div>
                 <div class="col-md-2">

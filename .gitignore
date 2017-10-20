@@ -61,3 +61,5 @@ docs/_build/
 target/
 bi_system/settings.py
 manage.py
+celerybeat.pid
+reverse_models.py

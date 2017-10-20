@@ -34,6 +34,7 @@ def index(request):
             end_date = start_date - timedelta(days=-30)  # 开始时间30天后
             end = datetime.strptime(end, '%Y-%m-%d')
             end = end_date if end_date<end else end
+            end = end.strftime("%Y-%m-%d")
         else:
             now = datetime.now()
             end_date = now - timedelta(days=2)          #两天前

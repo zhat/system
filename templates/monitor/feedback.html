@@ -4,7 +4,7 @@
 {% block css %}
     <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
     <style type="text/css">
-        .table tbody tr td{
+        .table tbody tr td {
             vertical-align: middle;
         }
     </style>
@@ -13,16 +13,15 @@
     <div class="container">
     <h2 class="text-center">Feedback统计</h2>
     <br />
-    <form class="form-horizontal"  action="{% url 'report:product_detail' %}" method="GET">
+    <form class="form-horizontal"  action="{% url 'monitor:feedback' %}" method="GET">
     <div class="row">
         <div class="form-group">
-            <label for="asin" class="col-md-1 control-label">站点</label>
+            <label for="zone" class="col-md-1 control-label">站点</label>
             <div class="col-md-3">
-                {% if profile %}
-                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />
-                {% else %}
-                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />
-                {% endif %}
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        <option>us</option>
+                    </select>
             </div>
             <label for="date" class="col-md-1 control-label">时间</label>
             <div class="col-md-5">
@@ -44,7 +43,7 @@
             <thead>
             <tr>
                 <th>日期</th>
-                <th>Station</th>
+                <th>zone</th>
                 <th>店铺</th>
                 <th>最近30天</th>
                 <th>最近90天</th>
@@ -59,15 +58,15 @@
                 <tr>
                 {% if forloop.first %}
                     <td rowspan="4">{{ feedback_count.date }}</td>
-                    <td rowspan="4">{{ feedback_count.station }}</td>
+                    <td rowspan="4">{{ feedback_count.zone }}</td>
                 {% endif %}
-                    <td>{{ feedback_count.store }}</td>
+                    <td><a href="{{ feedback_count.shop_url }}" target="_blank">{{ feedback_count.shop_name }}</a></td>
                     <td>{{ feedback_count.last_30_days }}</td>
                     <td>{{ feedback_count.last_90_days }}</td>
                     <td>{{ feedback_count.last_12_months }}</td>
                     <td>{{ feedback_count.lifetime }}</td>
-                    <td>{{ feedback_count.last_day }}</td>
-                    <td>{{ feedback_count.last_week }}</td>
+                    <td>{% if feedback_count.last_day %}{{ feedback_count.last_day }}{% endif %}</td>
+                    <td>{% if feedback_count.last_week %}{{ feedback_count.last_week }}{% endif %}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -90,7 +89,7 @@
         option = {
              title: {
                 top: 0,
-                text: '总数',
+                text: '总评论数',
                 left: 'center',
                 textStyle: {
                     color: '#000'
@@ -132,7 +131,7 @@
             },
             legend: {
                 right:'20%',
-                data:{{ store_list|safe }}
+                data:{{ shop_name_list|safe }}
             },
             xAxis: [
                 {
@@ -150,10 +149,10 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: '销售额(美元)',
+                    name: '总评论数',
                     min: 0,
-                    max: 20000,
-                    interval: 2000,
+                    max: {{ max_lifetime }},
+                    interval: {{ interval_lifetime }},
                     axisLabel: {
                     }
                 }
@@ -161,7 +160,7 @@
             series: [
                 {% for lifetime in lifetime_list %}
                 {
-                    name:'{{ lifetime.store }}',
+                    name:'{{ lifetime.shop_name }}',
                     type:'line',
                     data:{{ lifetime.lifetime }},
                     itemStyle:{
@@ -219,7 +218,7 @@
         option = {
              title: {
                 top: 0,
-                text: '上周数据',
+                text: '日评论数',
                 left: 'center',
                 textStyle: {
                     color: '#000'
@@ -261,7 +260,7 @@
             },
             legend: {
                  right:"20%",
-                data:{{ store_list|safe }}
+                data:{{ shop_name_list|safe }}
             },
             xAxis: [
                 {
@@ -279,20 +278,20 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: '销售额(美元)',
+                    name: '日评论数',
                     min: 0,
-                    max: 200,
-                    interval: 20,
+                    max: {{ max_last_day }},
+                    interval: {{ interval_last_day }},
                     axisLabel: {
                     }
                 }
             ],
             series: [
-                {% for last_week in last_week_list %}
+                {% for last_day in last_day_list %}
                 {
-                    name:'{{ last_week.store }}',
+                    name:'{{ last_day.shop_name }}',
                     type:'line',
-                    data:{{ last_week.last_week }},
+                    data:{{ last_day.last_day }},
                     itemStyle:{
                         normal: {
 {#                        label: {#}
@@ -330,8 +329,8 @@ $('#qBeginTime').datetimepicker({
 		startView: 2,
 		minView: 2,
 		forceParse: 0,
-        endDate:GetDateStr(-2),
-        initialDate:GetDateStr(-2)
+        endDate:new Date(),
+        initialDate:new Date()
 }).on('changeDate',function(e){
     var startTime = e.date;
     $('#qEndTime').datetimepicker('setStartDate',startTime);
@@ -346,8 +345,8 @@ $('#qEndTime').datetimepicker({
 		startView: 2,
 		minView: 2,
 		forceParse: 0,
-        endDate:GetDateStr(-2),
-        initialDate:GetDateStr(-2)
+        endDate:new Date(),
+        initialDate:new Date()
 }).on('changeDate',function(e){
     var endTime = e.date;
     $('#qBeginTime').datetimepicker('setEndDate',endTime);
@@ -361,8 +360,8 @@ $('#qEndTime').datetimepicker({
         return y+"-"+m+"-"+d;
     }
     function doQuery(form) {
-        if (form.asin.value==""){
-            form.asin.value = GetQueryString('asin');
+        if (form.zone.value==""){
+            form.zone.value = GetQueryString('zone');
         }
         document.myform.submit();
     };

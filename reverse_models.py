@@ -107,6 +107,21 @@ class AmazonProductBaseinfo(models.Model):
         db_table = 'amazon_product_baseinfo'
 
 
+class AmazonRefShopList(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    shop_name = models.CharField(max_length=50, blank=True, null=True)
+    shop_url = models.CharField(max_length=255, blank=True, null=True)
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    brand = models.CharField(max_length=40, blank=True, null=True)
+    type = models.CharField(max_length=40, blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_ref_shop_list'
+
+
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=80)
 
@@ -436,6 +451,24 @@ class EbayOrderFullItem(models.Model):
         db_table = 'ebay_order_full_item'
 
 
+class Feedback(models.Model):
+    date = models.DateField()
+    store = models.CharField(max_length=64, blank=True, null=True)
+    last_30_days = models.IntegerField(blank=True, null=True)
+    last_90_days = models.IntegerField(blank=True, null=True)
+    last_12_months = models.IntegerField(blank=True, null=True)
+    lifetime = models.IntegerField(blank=True, null=True)
+    last_day = models.IntegerField(blank=True, null=True)
+    last_week = models.IntegerField(blank=True, null=True)
+    create_time = models.DateTimeField()
+    update_time = models.DateTimeField()
+    station = models.CharField(max_length=64, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'feedback'
+
+
 class LightOrder(models.Model):
     entity_id = models.AutoField(primary_key=True)
     platform = models.CharField(max_length=60)
@@ -532,6 +565,33 @@ class LightOrderItem(models.Model):
         db_table = 'light_order_item'
 
 
+class MonitorFeedback(models.Model):
+    date = models.DateField()
+    store = models.CharField(max_length=64, blank=True, null=True)
+    last_30_days = models.IntegerField(blank=True, null=True)
+    last_90_days = models.IntegerField(blank=True, null=True)
+    last_12_months = models.IntegerField(blank=True, null=True)
+    lifetime = models.IntegerField(blank=True, null=True)
+    last_day = models.IntegerField(blank=True, null=True)
+    last_week = models.IntegerField(blank=True, null=True)
+    create_time = models.DateTimeField()
+    update_time = models.DateTimeField()
+    station = models.ForeignKey('MonitorStation', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'monitor_feedback'
+
+
+class MonitorStation(models.Model):
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'monitor_station'
+
+
 class OrderAdvise(models.Model):
     summary = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField(blank=True, null=True)
@@ -582,6 +642,22 @@ class ReportAsininfo(models.Model):
     class Meta:
         managed = False
         db_table = 'report_asininfo'
+
+
+class ReportProductstock(models.Model):
+    date = models.DateField()
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    platform = models.CharField(max_length=32, blank=True, null=True)
+    station = models.CharField(max_length=64, blank=True, null=True)
+    stock = models.IntegerField(blank=True, null=True)
+    create_time = models.DateTimeField()
+    reserved = models.IntegerField(blank=True, null=True)
+    quantity = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_productstock'
 
 
 class ReportReportdata(models.Model):

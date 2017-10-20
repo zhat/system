@@ -60,3 +60,4 @@ docs/_build/
 # PyBuilder
 target/
 bi_system/settings.py
+manage.py

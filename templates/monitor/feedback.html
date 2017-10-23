@@ -20,7 +20,9 @@
             <div class="col-md-3">
                     <select class="form-control" id="zone" name="zone">
                         <option></option>
-                        <option>us</option>
+                        {% for zone in zones %}
+                        <option>{{ zone }}</option>
+                        {% endfor %}
                     </select>
             </div>
             <label for="date" class="col-md-1 control-label">时间</label>
@@ -49,8 +51,8 @@
                 <th>最近90天</th>
                 <th>最近12个月</th>
                 <th>全部</th>
-                <th>最近1天</th>
-                <th>最近1周</th>
+                <th>日增长量</th>
+                <th>周增长量</th>
             </tr>
             </thead>
             <tbody>
@@ -89,7 +91,7 @@
         option = {
              title: {
                 top: 0,
-                text: '总评论数',
+                text: '周增长量',
                 left: 'center',
                 textStyle: {
                     color: '#000'
@@ -149,7 +151,7 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: '总评论数',
+                    name: '周增长量',
                     min: 0,
                     max: {{ max_lifetime }},
                     interval: {{ interval_lifetime }},
@@ -158,11 +160,11 @@
                 }
             ],
             series: [
-                {% for lifetime in lifetime_list %}
+                {% for last_week in last_week_list %}
                 {
-                    name:'{{ lifetime.shop_name }}',
+                    name:'{{ last_week.shop_name }}',
                     type:'line',
-                    data:{{ lifetime.lifetime }},
+                    data:{{ last_week.last_week }},
                     itemStyle:{
                         normal: {
 {#                        label: {#}
@@ -218,7 +220,7 @@
         option = {
              title: {
                 top: 0,
-                text: '日评论数',
+                text: '日增长量',
                 left: 'center',
                 textStyle: {
                     color: '#000'
@@ -278,7 +280,7 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: '日评论数',
+                    name: '日增长量',
                     min: 0,
                     max: {{ max_last_day }},
                     interval: {{ interval_last_day }},

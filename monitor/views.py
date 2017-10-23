@@ -64,34 +64,34 @@ def feedback(request):
         })
     tuples = [(shop_name,day) for shop_name in shop_name_list for day in days]
     index = pd.MultiIndex.from_tuples(tuples, names=['shop_name','day'])
-    data_frame = pd.DataFrame(0,index=index, columns=['last_day','lifetime'])
+    data_frame = pd.DataFrame(0,index=index, columns=['last_day','last_week'])
     date_list = [date.strftime("%Y/%m/%d") for date in days]
     last_day_list = []
-    lifetime_list = []
+    last_week_list = []
     feedback_list = FeedbackInfo.objects.filter(zone=zone).filter(date__range=(start,end))
     for feedback in feedback_list:
-        data_frame.loc[(feedback.shop_name,feedback.date.strftime("%Y-%m-%d")), 'lifetime'] = int(feedback.lifetime)
-        print(feedback.last_day)
+        if feedback.last_week:
+            data_frame.loc[(feedback.shop_name,feedback.date.strftime("%Y-%m-%d")), 'last_week'] = int(feedback.last_week)
+        else:
+            data_frame.loc[(feedback.shop_name, feedback.date.strftime("%Y-%m-%d")), 'last_week'] = 0
         if feedback.last_day:
             data_frame.loc[(feedback.shop_name, feedback.date.strftime("%Y-%m-%d")), 'last_day'] = int(feedback.last_day)
         else:
             data_frame.loc[(feedback.shop_name, feedback.date.strftime("%Y-%m-%d")), 'last_day'] = 0
-    print(data_frame)
     for shop_name in shop_name_list:
-        lifetime = list(map(int,data_frame.loc[shop_name]['lifetime'].values))
+        last_week = list(map(int,data_frame.loc[shop_name]['last_week'].values))
         last_day = list(map(int,data_frame.loc[shop_name]['last_day'].values))
-        print(lifetime)
         print(last_day)
 
         last_day_list.append({'shop_name': shop_name, 'last_day': last_day})
-        lifetime_list.append({'shop_name': shop_name, 'lifetime': lifetime})
-    max_lifetime = (max(list(map(int,data_frame['lifetime'].values))) // 10000 + 1) * 10000
+        last_week_list.append({'shop_name': shop_name, 'last_week': last_week})
+    max_lifetime = (max(list(map(int,data_frame['last_week'].values))) // 10000 + 1) * 10000
     interval_lifetime = max_lifetime // 10
     max_last_day = (max(list(map(int, data_frame['last_day'].values))) // 100 + 1) * 100
     interval_last_day = max_last_day // 10
     return render(request,"monitor/feedback.html",{'feedback_count_list':feedback_table_data,
                                                    'date_list':date_list,'last_day_list':last_day_list,
-                                                   'lifetime_list':lifetime_list,'shop_name_list':shop_name_list,
+                                                   'last_week_list':last_week_list,'shop_name_list':shop_name_list,
                                                    'max_lifetime':max_lifetime,'interval_lifetime':interval_lifetime,
                                                    'max_last_day':max_last_day,'interval_last_day':interval_last_day,
                                                    'zones':zones})

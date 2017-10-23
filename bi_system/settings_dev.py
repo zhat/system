@@ -13,9 +13,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 from celery.schedules import crontab
 from datetime import timedelta
+from kombu import Queue
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -126,3 +127,50 @@ LOGIN_URL='/users/login/'
 CELERYD_CONCURRENCY = 1  # 并发worker数
 CELERYD_MAX_TASKS_PER_CHILD = 100    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+DEBUG = True
+#SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
+ALLOWED_HOSTS = ['127.0.0.1','localhost','192.168.2.97']
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'bi_system_dev',
+        'USER':'lepython',
+        'PASSWORD':'qaz123456',
+        'HOST':'192.168.2.97',
+        'PORT':'3306',
+    }
+}
+TASKS_DATABASE = {
+	    'host':"192.168.2.97",
+		'database':"bi_system_dev",
+		'user':"lepython",
+		'password':"qaz123456",
+		'port':3306,
+		'charset':'utf8'
+}
+
+BROKER_URL = 'amqp://lepython:qaz123456@192.168.2.97:5672/dev'
+CELERY_RESULT_BACKEND = 'amqp://lepython:qaz123456@192.168.2.97:5672/dev'
+LOGIN_REDIRECT_URL="/"
+INSTALLED_APPS.append('report')
+INSTALLED_APPS.append('monitor')
+CHROME_USER_DATA_DIR = r"C:\Users\yaoxuzhao\AppData\Local\Google\Chrome\User Data"
+LE_USERNAME = "yaoxuzhao"
+LE_PASSWORD = "123"
+
+CELERY_QUEUES = ( # 定义任务队列
+        #celery           exchange=celery(direct) key=celery
+    Queue('celery', routing_key='celery'), # 路由键以“task.”开头的消息都进default队列
+    Queue('web_tasks', routing_key='web.insert_data'), # 路由键以“web.”开头的消息都进web_tasks队列
+)
+CELERY_DEFAULT_EXCHANGE = 'celery' # 默认的交换机名字为tasks
+CELERY_DEFAULT_EXCHANGE_TYPE = 'direct' # 默认的交换类型是topic
+CELERY_DEFAULT_ROUTING_KEY = 'celery' # 默认的路由键是task.default，这个路由键符合上面的default队列
+CELERY_ROUTES = {
+    'monitor.tasks.update_feedback': { # tasks.add的消息会进入web_tasks队列
+    'queue': 'web_tasks',
+    'routing_key': 'web.insert_data',
+    }
+}

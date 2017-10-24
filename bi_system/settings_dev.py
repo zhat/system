@@ -174,3 +174,16 @@ CELERY_ROUTES = {
     'routing_key': 'web.insert_data',
     }
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'smtp.exmail.qq.com'
+EMAIL_PORT = 465
+#发送邮件的邮箱
+EMAIL_HOST_USER = 'yaoxuzhao@ledbrighter.com'
+#在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'qazQAZ123456@'
+#收件人看到的发件人
+EMAIL_FROM = 'yaoxuzhao@ledbrighter.com'
+EMAIL_TIMEOUT = 20

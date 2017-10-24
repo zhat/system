@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from .models import FeedbackInfo,AmazonRefShopList
+from django.http import HttpResponse
 from datetime import datetime,timedelta
 import pandas as pd
+from django.core.mail import send_mail
+from django.template import Context, loader
+from django.conf import settings
 # Create your views here.
 def feedback(request):
     zone = request.GET.get("zone",'').strip()
@@ -95,3 +99,84 @@ def feedback(request):
                                                    'max_lifetime':max_lifetime,'interval_lifetime':interval_lifetime,
                                                    'max_last_day':max_last_day,'interval_last_day':interval_last_day,
                                                    'zones':zones})
+
+
+def send_email():
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d")
+    zone_list = AmazonRefShopList.objects.filter(type="feedback").values("zone").distinct().all()
+    # print(zone_list)
+    zones = [zone['zone'] for zone in zone_list]
+    zone_feedback_list =[]
+    for zone in zones:
+        shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback")
+        # print(shop_list)
+        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone)
+        shop_name_list = [shop.shop_name for shop in shop_list]
+        shop_url_dict = dict((shop.shop_name, shop.shop_url) for shop in shop_list)
+        feedback_table_data = []
+        for feedback_count in feedback_count_list:
+            feedback_table_data.append({
+                'date': feedback_count.date.strftime("%Y-%m-%d"),
+                'shop_name': feedback_count.shop_name,
+                'shop_url': shop_url_dict[feedback_count.shop_name],
+                'last_30_days': feedback_count.last_30_days,
+                'last_90_days': feedback_count.last_90_days,
+                'last_12_months': feedback_count.last_12_months,
+                'lifetime': feedback_count.lifetime,
+                'last_day': feedback_count.last_day,
+                'last_week': feedback_count.last_week,
+                'zone': feedback_count.zone,
+            })
+        zone_feedback_list.append(feedback_table_data)
+
+    email_template_name = '../templates/monitor/email.html'
+    t = loader.get_template(email_template_name)
+    context={'zone_feedback_list':zone_feedback_list}
+    html_content = t.render(context)
+    send_mail('测试邮件',
+              '',
+              settings.EMAIL_FROM,
+              ['641096898@qq.com'],
+              html_message=html_content)
+    return 'ok'
+
+def send_email_web(request):
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d")
+    zone_list = AmazonRefShopList.objects.filter(type="feedback").values("zone").distinct().all()
+    # print(zone_list)
+    zones = [zone['zone'] for zone in zone_list]
+    zone_feedback_list =[]
+    for zone in zones:
+        shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback")
+        # print(shop_list)
+        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone)
+        shop_name_list = [shop.shop_name for shop in shop_list]
+        shop_url_dict = dict((shop.shop_name, shop.shop_url) for shop in shop_list)
+        feedback_table_data = []
+        for feedback_count in feedback_count_list:
+            feedback_table_data.append({
+                'date': feedback_count.date.strftime("%Y-%m-%d"),
+                'shop_name': feedback_count.shop_name,
+                'shop_url': shop_url_dict[feedback_count.shop_name],
+                'last_30_days': feedback_count.last_30_days,
+                'last_90_days': feedback_count.last_90_days,
+                'last_12_months': feedback_count.last_12_months,
+                'lifetime': feedback_count.lifetime,
+                'last_day': feedback_count.last_day,
+                'last_week': feedback_count.last_week,
+                'zone': feedback_count.zone,
+            })
+        zone_feedback_list.append(feedback_table_data)
+
+    #email_template_name = '../templates/monitor/email.html'
+    #t = loader.get_template(email_template_name)
+    #context={'zone_feedback_list':zone_feedback_list}
+    #html_content = t.render(context)
+    #send_mail('测试邮件',
+    #          '',
+    #          settings.EMAIL_FROM,
+    #          ['641096898@qq.com'],
+    #          html_message=html_content)
+    return render(request,"monitor/email.html",{"zone_feedback_list":zone_feedback_list})

@@ -12,6 +12,7 @@ reload
 env/
 build/
 run/
+images/
 develop-eggs/
 dist/
 downloads/

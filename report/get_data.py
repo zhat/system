@@ -1,6 +1,7 @@
 from selenium import webdriver
 import urllib.request
 import urllib
+import os
 from urllib.parse import urlunparse,urlparse,urlencode
 import urllib.error
 import time
@@ -176,15 +177,15 @@ class GetStatisticsDataFromOMS():
             driver.maximize_window()
         except Exception as err:
             print(err)
-            pass
         while True:
-            image_path = r'E:\123\{}.jpg'.format(time.time())
-            image_path_png = r'E:\123\{}.png'.format(time.time())
+            base_path = settings.IMAGE_PATH
+            image_path = os.path.join(base_path,"{}.jpg".format(time.time()))
+            #image_path_png = os.path.join(base_path,"{}.jpg".format(time.time()))
             driver.get_screenshot_as_file(image_path)  # 比较好理解
             im = Image.open(image_path)
             box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
             region = im.crop(box)
-            region.save(image_path_png)
+            region.save(image_path)
             username = driver.find_element_by_id("username")
             password = driver.find_element_by_id("password")
             username.clear()
@@ -195,7 +196,7 @@ class GetStatisticsDataFromOMS():
             #password.send_keys("123")
             val_code = driver.find_element_by_id("valCode")
             val_code.clear()
-            img_code = img_to_str(image_path_png)
+            img_code = img_to_str(image_path)
             if not img_code:
                 img_code = "abcd"
             val_code.send_keys(img_code)

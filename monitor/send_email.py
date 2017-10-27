@@ -2,10 +2,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
 from django.shortcuts import render_to_response
-"""
-yaoxuzhao@ledbrighter.com
-qazQAZ123456@
-"""
 sender = "yaoxuzhao@ledbrighter.com"
 receiver = "641096898@qq.com"
 subject = "python email test"

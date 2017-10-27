@@ -192,3 +192,5 @@ EMAIL_HOST_PASSWORD = 'qazQAZ123456@'
 EMAIL_FROM = 'yaoxuzhao@ledbrighter.com'
 EMAIL_TO = ['yaoxuzhao@ledbrighter.com']
 EMAIL_TIMEOUT = 20
+
+IMAGE_PATH = os.path.join(BASE_DIR,"images")

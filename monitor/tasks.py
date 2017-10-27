@@ -1,7 +1,10 @@
 import random
 from celery import shared_task
-from .models import Station,Feedback,FeedbackInfo
+from .models import Station,Feedback,FeedbackInfo,AmazonRefShopList
 from datetime import datetime,timedelta
+from django.core.mail import send_mail
+from django.template import loader
+from django.conf import settings
 
 @shared_task
 def insert_data():
@@ -40,3 +43,45 @@ def update_feedback():
             if last_day_feedback:
                 feedback.last_day = feedback.lifetime - last_day_feedback[0].lifetime
         feedback.save()
+
+@shared_task
+def send_email():
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d")
+    date_str = now.strftime("%Y%m%d")
+    zone_list = AmazonRefShopList.objects.filter(type="feedback").values("zone").distinct().all()
+    # print(zone_list)
+    zones = [zone['zone'] for zone in zone_list]
+    zone_feedback_list =[]
+    for zone in zones:
+        shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback")
+        # print(shop_list)
+        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone)
+        shop_name_list = [shop.shop_name for shop in shop_list]
+        shop_url_dict = dict((shop.shop_name, shop.shop_url) for shop in shop_list)
+        feedback_table_data = []
+        for feedback_count in feedback_count_list:
+            feedback_table_data.append({
+                'date': feedback_count.date.strftime("%Y-%m-%d"),
+                'shop_name': feedback_count.shop_name,
+                'shop_url': shop_url_dict[feedback_count.shop_name],
+                'last_30_days': feedback_count.last_30_days,
+                'last_90_days': feedback_count.last_90_days,
+                'last_12_months': feedback_count.last_12_months,
+                'lifetime': feedback_count.lifetime,
+                'last_day': feedback_count.last_day,
+                'last_week': feedback_count.last_week,
+                'zone': feedback_count.zone,
+            })
+        zone_feedback_list.append(feedback_table_data)
+
+    email_template_name = '../templates/monitor/email.html'
+    t = loader.get_template(email_template_name)
+    context={'zone_feedback_list':zone_feedback_list,'date':now_str}
+    html_content = t.render(context)
+    send_mail('Feedback统计'+date_str,
+              '',
+              settings.EMAIL_FROM,
+              settings.EMAIL_TO,
+              html_message=html_content)
+    return True

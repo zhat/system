@@ -3,42 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <title>email</title>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .contain{
+            min-width: 1000px;
+            max-width: 90%;
+            margin: 0 auto;
+            margin-top: 100px;
+        }
+        .contain table,.contain table tr{
+            width: 100%;
+            text-align: center;
+        }
+        .contain tr th:first-child,.contain tr td:first-child{
+              width: 10%;
+          }
+        .contain tr th:nth-child(2),.contain tr td:nth-child(2){
+                width: 10%;
+        }
+        .contain tr th:nth-child(n+3),.contain tr td:nth-child(n+3){
+            width: 10%;
+        }
+    </style>
 </head>
-<body style="font-size:20px">
-    <table style="width: 100%;max-width: 100%;border: 1px solid #3D3D3D;text-align:center;" cellspacing="0" cellpadding="0">
-            <h4>相关信息</h4>
+<body>
+<div class="contain">
+    <h2 style="text-align: center;">Feedback统计信息</h2>
+<h3 style="text-align: center;">{{ date }}</h3>
+    <br />
+    <table  border="1" cellspacing="0">
             <thead>
-            <tr style="margin:0;border: 1px solid #3D3D3D; ">
-                <th style="margin:0;border: 1px solid #3D3D3D;">日期</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">zone</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">店铺</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">最近30天</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">最近90天</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">最近12个月</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">全部</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">日增长量</th>
-                <th style="margin:0;border: 1px solid #3D3D3D;">周增长量</th>
+            <tr>
+                <th>日期</th>
+                <th>zone</th>
+                <th>店铺</th>
+                <th>最近30天</th>
+                <th>最近90天</th>
+                <th>最近12个月</th>
+                <th>全部</th>
+                <th>日增长量</th>
+                <th>周增长量</th>
             </tr>
             </thead>
             <tbody>
                 {% for zone_feedback in zone_feedback_list %}
                     {% for feedback_count in zone_feedback %}
-                        <tr style="margin:0;border: 1px solid #3D3D3D;">
+                        <tr>
                         {% if forloop.first %}
-                            <td rowspan="4" style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.date }}</td>
-                            <td rowspan="4" style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.zone }}</td>
+                            <td rowspan="4">{{ feedback_count.date }}</td>
+                            <td rowspan="4">{{ feedback_count.zone }}</td>
                         {% endif %}
-                        <td style="margin:0;border: 1px solid #3D3D3D;"><a href="{{ feedback_count.shop_url }}" target="_blank">{{ feedback_count.shop_name }}</a></td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.last_30_days }}</td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.last_90_days }}</td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.last_12_months }}</td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.lifetime }}</td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.last_day }}</td>
-                        <td style="margin:0;border: 1px solid #3D3D3D;">{{ feedback_count.last_week }}</td>
+                        <td><a href="{{ feedback_count.shop_url }}" target="_blank">{{ feedback_count.shop_name }}</a></td>
+                        <td>{{ feedback_count.last_30_days }}</td>
+                        <td>{{ feedback_count.last_90_days }}</td>
+                        <td>{{ feedback_count.last_12_months }}</td>
+                        <td>{{ feedback_count.lifetime }}</td>
+                        <td>{{ feedback_count.last_day }}</td>
+                        <td>{{ feedback_count.last_week }}</td>
                     </tr>
                 {% endfor %}
                 {% endfor %}
             </tbody>
     </table>
+</div>
 </body>
 </html>

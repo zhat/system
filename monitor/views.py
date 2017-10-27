@@ -89,7 +89,7 @@ def feedback(request):
 
         last_day_list.append({'shop_name': shop_name, 'last_day': last_day})
         last_week_list.append({'shop_name': shop_name, 'last_week': last_week})
-    max_lifetime = (max(list(map(int,data_frame['last_week'].values))) // 10000 + 1) * 10000
+    max_lifetime = (max(list(map(int,data_frame['last_week'].values))) // 1000 + 1) * 1000
     interval_lifetime = max_lifetime // 10
     max_last_day = (max(list(map(int, data_frame['last_day'].values))) // 100 + 1) * 100
     interval_last_day = max_last_day // 10
@@ -104,6 +104,7 @@ def feedback(request):
 def send_email():
     now = datetime.now()
     now_str = now.strftime("%Y-%m-%d")
+    date_str = now.strftime("%Y%m%d")
     zone_list = AmazonRefShopList.objects.filter(type="feedback").values("zone").distinct().all()
     # print(zone_list)
     zones = [zone['zone'] for zone in zone_list]
@@ -132,12 +133,12 @@ def send_email():
 
     email_template_name = '../templates/monitor/email.html'
     t = loader.get_template(email_template_name)
-    context={'zone_feedback_list':zone_feedback_list}
+    context={'zone_feedback_list':zone_feedback_list,'date':now_str}
     html_content = t.render(context)
-    send_mail('测试邮件',
+    send_mail('Feedback统计'+date_str,
               '',
               settings.EMAIL_FROM,
-              ['641096898@qq.com'],
+              ['yaoxuzhao@ledbrighter.com'],
               html_message=html_content)
     return 'ok'
 
@@ -179,4 +180,4 @@ def send_email_web(request):
     #          settings.EMAIL_FROM,
     #          ['641096898@qq.com'],
     #          html_message=html_content)
-    return render(request,"monitor/email.html",{"zone_feedback_list":zone_feedback_list})
+    return render(request,"monitor/email.html",{"zone_feedback_list":zone_feedback_list,'date':now_str})

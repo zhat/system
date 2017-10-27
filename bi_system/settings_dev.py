@@ -172,6 +172,10 @@ CELERY_ROUTES = {
     'monitor.tasks.update_feedback': { # tasks.add的消息会进入web_tasks队列
     'queue': 'web_tasks',
     'routing_key': 'web.insert_data',
+    },
+    'monitor.tasks.send_email': { # tasks.add的消息会进入web_tasks队列
+    'queue': 'web_tasks',
+    'routing_key': 'web.insert_data',
     }
 }
 
@@ -186,4 +190,5 @@ EMAIL_HOST_USER = 'yaoxuzhao@ledbrighter.com'
 EMAIL_HOST_PASSWORD = 'qazQAZ123456@'
 #收件人看到的发件人
 EMAIL_FROM = 'yaoxuzhao@ledbrighter.com'
+EMAIL_TO = ['yaoxuzhao@ledbrighter.com']
 EMAIL_TIMEOUT = 20

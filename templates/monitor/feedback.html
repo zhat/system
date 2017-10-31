@@ -16,7 +16,7 @@
     <form class="form-horizontal"  action="{% url 'monitor:feedback' %}" method="GET">
     <div class="row">
         <div class="form-group">
-            <label for="zone" class="col-md-1 control-label">站点</label>
+            <label for="zone" class="col-md-offset-3 col-md-1 control-label">站点</label>
             <div class="col-md-3">
                     <select class="form-control" id="zone" name="zone">
                         <option></option>
@@ -25,14 +25,14 @@
                         {% endfor %}
                     </select>
             </div>
-            <label for="date" class="col-md-1 control-label">时间</label>
-            <div class="col-md-5">
-                <div class="input-daterange input-group" id="datepicker">
-                    <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
-                    <span class="input-group-addon">至</span>
-                    <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
-                </div>
-            </div>
+{#            <label for="date" class="col-md-1 control-label">时间</label>#}
+{#            <div class="col-md-5">#}
+{#                <div class="input-daterange input-group" id="datepicker">#}
+{#                    <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />#}
+{#                    <span class="input-group-addon">至</span>#}
+{#                    <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />#}
+{#                </div>#}
+{#            </div>#}
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
             </div>
@@ -142,7 +142,7 @@
                     //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
                     //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
                     //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
-                    data:{{  date_list|safe }},
+                    data:{{  list_week_date_list|safe }},
                     axisPointer: {
                         type: 'shadow'
                     }
@@ -153,8 +153,8 @@
                     type: 'value',
                     name: '周增长量',
                     min: 0,
-                    max: {{ max_lifetime }},
-                    interval: {{ interval_lifetime }},
+                    max: {{ max_value_of_weeks }},
+                    interval: {{ interval_of_weeks }},
                     axisLabel: {
                     }
                 }
@@ -191,7 +191,7 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
-        $('#li_product_detail').attr('class','active');
+        $('#li_feedback').attr('class','active');
 {#        function mousedown(params)#}
 {#        {#}
 {#            if(params.length>0){#}
@@ -220,7 +220,7 @@
         option = {
              title: {
                 top: 0,
-                text: '日增长量',
+                text: '月增长量',
                 left: 'center',
                 textStyle: {
                     color: '#000'
@@ -271,7 +271,7 @@
                     //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
                     //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
                     //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
-                    data:{{  date_list|safe }},
+                    data:{{  months|safe }},
                     axisPointer: {
                         type: 'shadow'
                     }
@@ -280,20 +280,20 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: '日增长量',
+                    name: '月增长量',
                     min: 0,
-                    max: {{ max_last_day }},
-                    interval: {{ interval_last_day }},
+                    max: {{ max_value_of_months }},
+                    interval: {{ interval_of_months }},
                     axisLabel: {
                     }
                 }
             ],
             series: [
-                {% for last_day in last_day_list %}
+                {% for last_month in last_month_list %}
                 {
-                    name:'{{ last_day.shop_name }}',
+                    name:'{{ last_month.shop_name }}',
                     type:'line',
-                    data:{{ last_day.last_day }},
+                    data:{{ last_month.last_month }},
                     itemStyle:{
                         normal: {
 {#                        label: {#}

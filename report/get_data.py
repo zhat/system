@@ -179,13 +179,13 @@ class GetStatisticsDataFromOMS():
             print(err)
         while True:
             base_path = settings.IMAGE_PATH
-            image_path = os.path.join(base_path,"{}.jpg".format(time.time()))
-            #image_path_png = os.path.join(base_path,"{}.jpg".format(time.time()))
+            image_path = os.path.join(base_path,"base{}.png".format(int(time.time()*10000000)))
+            image_path_png = os.path.join(base_path,"{}.png".format(int(time.time()*10000000)))
             driver.get_screenshot_as_file(image_path)  # 比较好理解
             im = Image.open(image_path)
             box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
             region = im.crop(box)
-            region.save(image_path)
+            region.save(image_path_png)
             username = driver.find_element_by_id("username")
             password = driver.find_element_by_id("password")
             username.clear()
@@ -196,7 +196,7 @@ class GetStatisticsDataFromOMS():
             #password.send_keys("123")
             val_code = driver.find_element_by_id("valCode")
             val_code.clear()
-            img_code = img_to_str(image_path)
+            img_code = img_to_str(image_path_png)
             if not img_code:
                 img_code = "abcd"
             val_code.send_keys(img_code)

@@ -1,34 +1,32 @@
-import random
+import os
+import time
 from celery import shared_task
 from .models import Station,Feedback,FeedbackInfo,AmazonRefShopList
 from datetime import datetime,timedelta
-from django.core.mail import send_mail
+from django.core.mail import send_mail,EmailMessage
 from django.template import loader
 from django.conf import settings
-
-@shared_task
-def insert_data():
-    station = Station.objects.filter(station="amazon.com").first()
-    now = datetime.now()
-    days = 0
-    while days<60:
-        date = now - timedelta(days=days)
-        date_str = date.strftime("%Y-%m-%d")
-        days += 1
-        if Feedback.objects.filter(date=date_str):
-            continue
-        for store in ['store1','store2','store3','store4']:
-            Feedback.objects.create(date=date_str,store=store,station=station,last_30_days=500,
-                                    last_90_days=1500,last_12_months=6000,lifetime=random.randint(10000,20000),
-                                    last_day=20,last_week=random.randint(100,200))
+import pandas as pd
+from email.mime.image import MIMEImage
+import matplotlib.pyplot as plt
+from PIL import Image
 
 @shared_task
 def update_feedback():
     feedback_list = FeedbackInfo.objects.all()
     for feedback in feedback_list:
+        if not feedback.last_month:
+            start_date = feedback.date
+            last_month = start_date - timedelta(days=start_date.day-1) if start_date.day-1 else (start_date - timedelta(days=1)).replace(day=1)
+            last_month_str = last_month.strftime('%Y-%m-%d')
+            last_month_feedback = FeedbackInfo.objects.filter(date=last_month_str). \
+                filter(zone=feedback.zone).filter(shop_name=feedback.shop_name)
+            if last_month_feedback:
+                feedback.last_month = feedback.lifetime - last_month_feedback[0].lifetime
         if not feedback.last_week:
             start_date = feedback.date
-            last_week = start_date-timedelta(days=7)
+            days = start_date.weekday() if start_date.weekday() else 7
+            last_week = start_date-timedelta(days=days)
             last_week_str = last_week.strftime('%Y-%m-%d')
             last_week_feedback = FeedbackInfo.objects.filter(date=last_week_str).\
                 filter(zone=feedback.zone).filter(shop_name=feedback.shop_name)
@@ -43,6 +41,69 @@ def update_feedback():
             if last_day_feedback:
                 feedback.last_day = feedback.lifetime - last_day_feedback[0].lifetime
         feedback.save()
+
+def feedback_image():
+    now = datetime.now()
+    last_monday = now if not now.weekday() else now - timedelta(days=now.weekday())
+    start_monday = last_monday - timedelta(days=29*7)
+    last_monday_str = last_monday.strftime("%Y-%m-%d")
+    start_monday_str = start_monday.strftime("%Y-%m-%d")
+    zone="us"
+    days = pd.date_range(start=start_monday_str, end=last_monday_str,freq="7D")
+    dates = [date.strftime("%Y-%m-%d") for date in days]
+    if now.weekday():  #今天不是星期一
+        dates.pop(0)
+        dates.append(now.strftime("%Y-%m-%d"))
+    shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback")
+    shop_name_list = [shop.shop_name for shop in shop_list]
+    tuples = [(shop_name, date) for shop_name in shop_name_list for date in dates]
+    index = pd.MultiIndex.from_tuples(tuples, names=['shop_name', 'day'])
+    data_frame = pd.DataFrame(0, index=index, columns=['last_week'])
+    feedback_list = FeedbackInfo.objects.filter(zone=zone).filter(date__in=dates)
+    print(feedback_list)
+    for feedback in feedback_list:
+        print(feedback.shop_name,feedback.date)
+        print(feedback.last_week)
+        if feedback.last_week:
+            #print(feedback.last_week)
+            data_frame.loc[(feedback.shop_name, feedback.date.strftime("%Y-%m-%d")), 'last_week'] = int(
+                feedback.last_week)
+        else:
+            #print("no feedback last_week")
+            data_frame.loc[(feedback.shop_name, feedback.date.strftime("%Y-%m-%d")), 'last_week'] = 0
+    x = range(len(dates))
+    # 创建绘图对象，figsize参数可以指定绘图对象的宽度和高度，单位为英寸，一英寸=80px
+
+    #print(data_frame)
+    plt.figure(figsize=(24,12))
+    plt.xticks(x, dates, rotation=60)
+    for shop_name in shop_name_list:
+        last_week = list(map(int, data_frame.loc[shop_name]['last_week'].values))
+        plt.plot(x, last_week)
+    #plt.show()
+    #plt.title("周增长量<br/><br/>")
+    base_path = settings.IMAGE_PATH
+    base_file_path = os.path.join(base_path,"feedback_line_base{}.png".format(int(time.time())))
+    final_file_path = os.path.join(base_path, "feedback_line{}.png".format(int(time.time())))
+    plt.savefig(base_file_path)  # 保存图
+    im = Image.open(base_file_path)
+    box = (200,100,2250,1200)  # 设置要裁剪的区域
+    region = im.crop(box)
+    region.save(final_file_path)
+    return final_file_path
+
+def add_img(src, img_id):
+    """
+    在富文本邮件模板里添加图片
+    :param src:
+    :param img_id:
+    :return:
+    """
+    fp = open(src, 'rb')
+    msg_image = MIMEImage(fp.read())
+    fp.close()
+    msg_image.add_header('Content-ID', '<'+img_id+'>')
+    return msg_image
 
 @shared_task
 def send_email():
@@ -71,6 +132,7 @@ def send_email():
                 'lifetime': feedback_count.lifetime,
                 'last_day': feedback_count.last_day,
                 'last_week': feedback_count.last_week,
+                'last_month': feedback_count.last_month,
                 'zone': feedback_count.zone,
             })
         zone_feedback_list.append(feedback_table_data)
@@ -79,9 +141,19 @@ def send_email():
     t = loader.get_template(email_template_name)
     context={'zone_feedback_list':zone_feedback_list,'date':now_str}
     html_content = t.render(context)
-    send_mail('Feedback统计'+date_str,
-              '',
-              settings.EMAIL_FROM,
-              settings.EMAIL_TO,
-              html_message=html_content)
-    return True
+    #send_mail('Feedback统计'+date_str,
+    #          '',
+    #          settings.EMAIL_FROM,
+    #          settings.EMAIL_TO,
+    #          html_message=html_content)
+
+    msg = EmailMessage('Feedback统计'+date_str, html_content, settings.EMAIL_FROM,settings.EMAIL_TO)
+    msg.content_subtype = 'html'
+    msg.encoding = 'utf-8'
+    image_path = feedback_image()
+    image = add_img(image_path, 'test_cid')
+    msg.attach(image)
+    if msg.send():
+        return True
+    else:
+        return False

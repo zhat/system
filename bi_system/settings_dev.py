@@ -72,7 +72,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bi_system.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 # Password validation
@@ -176,6 +175,10 @@ CELERY_ROUTES = {
     'monitor.tasks.send_email': { # tasks.add的消息会进入web_tasks队列
     'queue': 'web_tasks',
     'routing_key': 'web.insert_data',
+    },
+    'report.tasks.clean': { # tasks.add的消息会进入web_tasks队列
+    'queue': 'web_tasks',
+    'routing_key': 'web.insert_data',
     }
 }
 
@@ -189,7 +192,8 @@ EMAIL_HOST_USER = 'yaoxuzhao@ledbrighter.com'
 EMAIL_HOST_PASSWORD = 'qazQAZ123456@'
 #收件人看到的发件人
 EMAIL_FROM = 'yaoxuzhao@ledbrighter.com'
-EMAIL_TO = ['fuqiang@ledbrighter.com','yangzhixiang@ledbrighter.com','yaoxuzhao@ledbrighter.com']
+#EMAIL_TO = ['fuqiang@ledbrighter.com','yangzhixiang@ledbrighter.com','yaoxuzhao@ledbrighter.com']
+EMAIL_TO = ['yaoxuzhao@ledbrighter.com','yangzhixiang@ledbrighter.com']
 EMAIL_TIMEOUT = 20
 
 #

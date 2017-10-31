@@ -38,9 +38,19 @@ class FeedbackInfo(models.Model):
     lifetime = models.IntegerField(blank=True, null=True)
     last_day = models.IntegerField(blank=True, null=True)
     last_week = models.IntegerField(blank=True, null=True)
+    last_month = models.IntegerField(blank=True, null=True)
     create_time = models.DateTimeField()
     update_time = models.DateTimeField()
     zone = models.CharField(max_length=64, blank=True, null=True)
+
+    def to_dict(self):
+        return {"date":self.date,"shop_name":self.shop_name,
+                "last_30_days":self.last_30_days,"last_90_days":self.last_90_days,
+                "last_12_months":self.last_12_months,"lifetime":self.lifetime,
+                "last_day": self.last_day, "last_week": self.last_week,
+                "last_month": self.last_month, "create_time": self.create_time,
+                "update_time": self.update_time, "zone": self.zone,
+                }
 
     class Meta:
         managed = False
@@ -59,3 +69,4 @@ class AmazonRefShopList(models.Model):
     class Meta:
         managed = False
         db_table = 'amazon_ref_shop_list'
+

@@ -33,7 +33,10 @@
 <div class="contain">
     <h2 style="text-align: center;">Feedback统计信息</h2>
 <h3 style="text-align: center;">{{ date }}</h3>
-    <br />
+<br /><br /><br />
+    <h3 style="text-align: center;">周增长量-US</h3>
+<img src="cid:test_cid" />
+    <br /><br /><br />
     <table  border="1" cellspacing="0">
             <thead>
             <tr>
@@ -44,8 +47,8 @@
                 <th>最近90天</th>
                 <th>最近12个月</th>
                 <th>全部</th>
-                <th>日增长量</th>
                 <th>周增长量</th>
+                <th>月增长量</th>
             </tr>
             </thead>
             <tbody>
@@ -61,8 +64,8 @@
                         <td>{{ feedback_count.last_90_days }}</td>
                         <td>{{ feedback_count.last_12_months }}</td>
                         <td>{{ feedback_count.lifetime }}</td>
-                        <td>{{ feedback_count.last_day }}</td>
                         <td>{{ feedback_count.last_week }}</td>
+                        <td>{{ feedback_count.last_month }}</td>
                     </tr>
                 {% endfor %}
                 {% endfor %}

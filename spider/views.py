@@ -38,7 +38,7 @@ def order_add(request):
             new_order.user = request.user
             new_order.add_time = datetime.now()
             new_order.save()
-            get_order_with_asin.delay(new_order.asin,new_order.profile,new_order.zone)
+            #get_order_with_asin.delay(new_order.asin,new_order.profile,new_order.zone)
     return HttpResponseRedirect(reverse('spider:orders'))
 
 def count(request):

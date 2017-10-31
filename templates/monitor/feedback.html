@@ -51,8 +51,8 @@
                 <th>最近90天</th>
                 <th>最近12个月</th>
                 <th>全部</th>
-                <th>日增长量</th>
                 <th>周增长量</th>
+                <th>月增长量</th>
             </tr>
             </thead>
             <tbody>
@@ -67,8 +67,9 @@
                     <td>{{ feedback_count.last_90_days }}</td>
                     <td>{{ feedback_count.last_12_months }}</td>
                     <td>{{ feedback_count.lifetime }}</td>
-                    <td>{% if feedback_count.last_day %}{{ feedback_count.last_day }}{% endif %}</td>
                     <td>{% if feedback_count.last_week %}{{ feedback_count.last_week }}{% endif %}</td>
+                    <td>{% if feedback_count.last_month %}{{ feedback_count.last_month }}{% endif %}</td>
+
                 </tr>
             {% endfor %}
             </tbody>

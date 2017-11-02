@@ -183,6 +183,59 @@ CELERY_ROUTES = {
     }
 }
 
+#logging日志配置
+LOGGING = {
+ 'version': 1,
+ 'disable_existing_loggers': True,
+ 'formatters': {#日志格式
+ 'standard': {
+  'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s'}
+ },
+ 'filters': {#过滤器
+ 'require_debug_false': {
+  '()': 'django.utils.log.RequireDebugFalse',
+  }
+ },
+ 'handlers': {#处理器
+ 'null': {
+  'level': 'DEBUG',
+  'class': 'logging.NullHandler',
+ },
+ 'debug': {#记录到日志文件(需要创建对应的目录，否则会出错)
+  'level':'DEBUG',
+  'class':'logging.handlers.RotatingFileHandler',
+  'filename': os.path.join(BASE_DIR, "log",'debug.log'),#日志输出文件
+  'maxBytes':1024*1024*5,#文件大小
+  'backupCount': 5,#备份份数
+  'formatter':'standard',#使用哪种formatters日志格式
+ },
+ 'console':{#输出到控制台
+  'level': 'DEBUG',
+  'class': 'logging.StreamHandler',
+  'formatter': 'standard',
+ },
+ },
+ 'loggers': {#logging管理器
+ 'django': {
+  'handlers': ['console','debug'],
+  'level': 'INFO',
+  'propagate': False
+ },
+ 'django.request': {
+  'handlers': ['debug'],
+  'level': 'DEBUG',
+  'propagate': True,
+ },
+ # 对于不在 ALLOWED_HOSTS 中的请求不发送报错邮件
+ 'django.security.DisallowedHost': {
+  'handlers': ['null'],
+  'propagate': False,
+ },
+ }
+}
+
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_SSL = True
 EMAIL_HOST = 'smtp.exmail.qq.com'
@@ -198,3 +251,8 @@ EMAIL_TO = ['yaoxuzhao@ledbrighter.com']
 EMAIL_TIMEOUT = 20
 
 IMAGE_PATH = os.path.join(BASE_DIR,"images")
+
+SCRAPY_PROJECT_DIR = "/home/lepython/projects/amazonFrontCrawl"
+SCRAPY_LOG_DIR = "/home/lepython/projects/crawl_logs"
+SCRAPY_CMD_PATH = "/home/lepython/anaconda3/envs/python27/bin/scrapy"
+

@@ -1,5 +1,6 @@
 import os
 import time
+import subprocess
 from celery import shared_task
 from .models import Station,Feedback,FeedbackInfo,AmazonRefShopList
 from datetime import datetime,timedelta
@@ -10,6 +11,9 @@ import pandas as pd
 from email.mime.image import MIMEImage
 import matplotlib.pyplot as plt
 from PIL import Image
+import logging
+
+logger = logging.getLogger("django")
 
 @shared_task
 def update_feedback():
@@ -158,3 +162,15 @@ def send_email():
         return True
     else:
         return False
+
+@shared_task
+def get_feedback(spider):
+    now=datetime.now()
+    today = now.strftime("%Y-%m-%d")
+    old_path = os.getcwd()
+    logger.debug(old_path)
+    os.chdir(settings.SCRAPY_PROJECT_DIR)
+    log_file_name = "%s.log"%(today)
+    cmd = settings.SCRAPY_CMD_PATH+" crawl "+spider+" >> "+os.path.join(settings.SCRAPY_LOG_DIR,spider,log_file_name)+" 2>&1 &"
+    logging.debug(cmd)
+    subprocess.call(cmd)

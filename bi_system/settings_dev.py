@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-from celery.schedules import crontab
-from datetime import timedelta
 from kombu import Queue
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -27,6 +25,8 @@ SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
 # SECURITY WARNING: don't run with debug turned on in production!
 
 # Application definition
+
+DEBUG = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -127,7 +127,6 @@ CELERYD_CONCURRENCY = 1  # 并发worker数
 CELERYD_MAX_TASKS_PER_CHILD = 100    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-DEBUG = True
 #SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
 ALLOWED_HOSTS = ['127.0.0.1','localhost']
 
@@ -198,3 +197,54 @@ EMAIL_TIMEOUT = 20
 
 #
 IMAGE_PATH = os.path.join(BASE_DIR,"images")
+
+#logging日志配置
+LOGGING = {
+ 'version': 1,
+ 'disable_existing_loggers': True,
+ 'formatters': {#日志格式
+ 'standard': {
+  'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s'}
+ },
+ 'filters': {#过滤器
+ 'require_debug_false': {
+  '()': 'django.utils.log.RequireDebugFalse',
+  }
+ },
+ 'handlers': {#处理器
+ 'null': {
+  'level': 'DEBUG',
+  'class': 'logging.NullHandler',
+ },
+ 'debug': {#记录到日志文件(需要创建对应的目录，否则会出错)
+  'level':'DEBUG',
+  'class':'logging.handlers.RotatingFileHandler',
+  'filename': os.path.join(BASE_DIR, "log",'debug.log'),#日志输出文件
+  'maxBytes':1024*1024*5,#文件大小
+  'backupCount': 5,#备份份数
+  'formatter':'standard',#使用哪种formatters日志格式
+ },
+ 'console':{#输出到控制台
+  'level': 'DEBUG',
+  'class': 'logging.StreamHandler',
+  'formatter': 'standard',
+ },
+ },
+ 'loggers': {#logging管理器
+ 'django': {
+  'handlers': ['console','debug'],
+  'level': 'INFO',
+  'propagate': False
+ },
+ 'django.request': {
+  'handlers': ['debug'],
+  'level': 'DEBUG',
+  'propagate': True,
+ },
+ # 对于不在 ALLOWED_HOSTS 中的请求不发送报错邮件
+ 'django.security.DisallowedHost': {
+  'handlers': ['null'],
+  'propagate': False,
+ },
+ }
+}

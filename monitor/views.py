@@ -2,7 +2,9 @@ from django.shortcuts import render
 from .models import FeedbackInfo,AmazonRefShopList
 from datetime import datetime,timedelta
 import pandas as pd
+import logging
 # Create your views here.
+logger = logging.getLogger('django')
 
 def the_1st_of_the_month(number=12):
     now = datetime.now()
@@ -20,7 +22,7 @@ def get_data(date_list,shop_name_list,zone,field):
     data_frame = pd.DataFrame(0, index=index, columns=[field])
     field_data_list = []
     feedback_list = FeedbackInfo.objects.filter(zone=zone).filter(date__in=date_list)
-    print(feedback_list)
+    logger.info(feedback_list)
     for feedback in feedback_list:
         feedback=feedback.to_dict()
         if feedback[field]:

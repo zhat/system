@@ -23,11 +23,12 @@ def update_feedback():
                 filter(zone=feedback.zone).filter(shop_name=feedback.shop_name)
             if last_month_feedback:
                 feedback.last_month = feedback.lifetime - last_month_feedback[0].lifetime
-        if not feedback.last_week:
+        if True:    #not feedback.last_week:
             start_date = feedback.date
             days = start_date.weekday() if start_date.weekday() else 7
             last_week = start_date-timedelta(days=days)
             last_week_str = last_week.strftime('%Y-%m-%d')
+            print(start_date,last_week,last_week_str)
             last_week_feedback = FeedbackInfo.objects.filter(date=last_week_str).\
                 filter(zone=feedback.zone).filter(shop_name=feedback.shop_name)
             if last_week_feedback:

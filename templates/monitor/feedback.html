@@ -67,8 +67,8 @@
                     <td>{{ feedback_count.last_90_days }}</td>
                     <td>{{ feedback_count.last_12_months }}</td>
                     <td>{{ feedback_count.lifetime }}</td>
-                    <td>{% if feedback_count.last_week %}{{ feedback_count.last_week }}{% endif %}</td>
-                    <td>{% if feedback_count.last_month %}{{ feedback_count.last_month }}{% endif %}</td>
+                    <td>{% if feedback_count.last_week %}{{ feedback_count.last_week }}{% else %}0{% endif %}</td>
+                    <td>{% if feedback_count.last_month %}{{ feedback_count.last_month }}{% else %}0{% endif %}</td>
 
                 </tr>
             {% endfor %}

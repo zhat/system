@@ -129,7 +129,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 DEBUG = True
 #SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
-ALLOWED_HOSTS = ['127.0.0.1','localhost','192.168.2.97']
+ALLOWED_HOSTS = ['127.0.0.1','localhost']
 
 DATABASES = {
     'default': {

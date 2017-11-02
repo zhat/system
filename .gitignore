@@ -59,7 +59,7 @@ coverage.xml
 docs/_build/
 
 # PyBuilder
-target/
-manage.py
+# celerybeat.pid
 celerybeat.pid
 reverse_models.py
+manage.py

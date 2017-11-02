@@ -134,7 +134,7 @@ ALLOWED_HOSTS = ['127.0.0.1','localhost','192.168.2.97']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bi_system',
+        'NAME': 'bi_system_dev',
         'USER':'lepython',
         'PASSWORD':'qaz123456',
         'HOST':'192.168.2.97',
@@ -143,7 +143,7 @@ DATABASES = {
 }
 TASKS_DATABASE = {
 	    'host':"192.168.2.97",
-		'database':"bi_system",
+		'database':"bi_system_dev",
 		'user':"lepython",
 		'password':"qaz123456",
 		'port':3306,

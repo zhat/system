@@ -164,7 +164,7 @@ def send_email():
         return False
 
 @shared_task
-def get_feedback(spider):
+def execute_crawler(spider):
     now=datetime.now()
     today = now.strftime("%Y-%m-%d")
     old_path = os.getcwd()
@@ -173,4 +173,4 @@ def get_feedback(spider):
     log_file_name = "%s.log"%(today)
     cmd = settings.SCRAPY_CMD_PATH+" crawl "+spider+" >> "+os.path.join(settings.SCRAPY_LOG_DIR,spider,log_file_name)+" 2>&1 &"
     logging.debug(cmd)
-    subprocess.call(cmd)
+    subprocess.call(cmd,shell=True)

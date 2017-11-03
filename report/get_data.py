@@ -43,7 +43,7 @@ class GetStatisticsDataFromOMS():
         :param driver: webdriver.Chrome
         :return:email or ""
         """
-        if not isinstance(driver,webdriver.Chrome):
+        if not isinstance(driver,webdriver.PhantomJS):
             raise TypeError
         #time.sleep(5)
         cookie = driver.get_cookies()
@@ -179,11 +179,13 @@ class GetStatisticsDataFromOMS():
             print(err)
         while True:
             base_path = settings.IMAGE_PATH
-            image_path = os.path.join(base_path,"base{}.png".format(int(time.time()*10000000)))
-            image_path_png = os.path.join(base_path,"{}.png".format(int(time.time()*10000000)))
+            time_str=int(time.time()*10000000)
+            image_path = os.path.join(base_path,"base{}.png".format(time_str))
+            image_path_png = os.path.join(base_path,"{}.png".format(time_str))
             driver.get_screenshot_as_file(image_path)  # 比较好理解
             im = Image.open(image_path)
-            box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
+            #box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
+            box = (745,356,821,376)
             region = im.crop(box)
             region.save(image_path_png)
             username = driver.find_element_by_id("username")
@@ -218,7 +220,7 @@ def get_data(date):
         # # 读取本地信息
         # chrome_options.add_argument("--user-data-dir=" + USER_DATA_DIR)
         # driver = webdriver.Chrome(chrome_options=chrome_options)
-        driver = webdriver.Chrome()
+        driver = webdriver.PhantomJS()
         driver.get(BASE_URL)
         time.sleep(6)
         now = datetime.now()

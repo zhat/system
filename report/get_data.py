@@ -177,7 +177,8 @@ class GetStatisticsDataFromOMS():
             driver.maximize_window()
         except Exception as err:
             print(err)
-        while True:
+        frequency = 0
+        while frequency<15:
             base_path = settings.IMAGE_PATH
             time_str=int(time.time()*10000000)
             image_path = os.path.join(base_path,"base{}.png".format(time_str))
@@ -185,7 +186,7 @@ class GetStatisticsDataFromOMS():
             driver.get_screenshot_as_file(image_path)  # 比较好理解
             im = Image.open(image_path)
             #box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
-            box = (745,356,821,376)
+            box = (745,356,821,380)
             region = im.crop(box)
             region.save(image_path_png)
             username = driver.find_element_by_id("username")
@@ -207,6 +208,7 @@ class GetStatisticsDataFromOMS():
             time.sleep(5)
             if driver.find_elements_by_class_name("header_img"):
                 break
+            frequency+=1
 
 def get_data(date):
     try:

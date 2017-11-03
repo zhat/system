@@ -5,6 +5,8 @@ from celery import shared_task
 from .models import StatisticsData,ReportData,AsinInfo,StatisticsOfPlatform,ProductStock
 from datetime import datetime,timedelta
 from .get_data import get_data
+from django.conf import settings
+from .read_email import get_email_excel
 
 def clean_data(date):
     """
@@ -118,7 +120,10 @@ def get_sum_route(date):
         sp.save()
 
 
+@shared_task
 def get_stock():
+    ##从excel文件获取库存
+    get_email_excel()
     now = datetime.now()
     i = 30
     while i>=0:
@@ -127,7 +132,7 @@ def get_stock():
         now_str = date.strftime("%Y%m%d")
         print(now_str)
         file_name = "库存管理总表{}.xlsx".format(now_str)
-        base_path = r"E:\email"
+        base_path = settings.IMAGE_PATH
         file_path = os.path.join(base_path,file_name)
         print(file_path)
         if not os.path.exists(file_path):

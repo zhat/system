@@ -178,7 +178,7 @@ class GetStatisticsDataFromOMS():
         except Exception as err:
             print(err)
         frequency = 0
-        while frequency<15:
+        while True:
             base_path = settings.IMAGE_PATH
             time_str=int(time.time()*10000000)
             image_path = os.path.join(base_path,"base{}.png".format(time_str))
@@ -209,6 +209,8 @@ class GetStatisticsDataFromOMS():
             if driver.find_elements_by_class_name("header_img"):
                 break
             frequency+=1
+            if frequency>10:
+                raise TimeoutError
 
 def get_data(date):
     try:

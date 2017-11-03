@@ -9,6 +9,8 @@ from django.template import loader
 from django.conf import settings
 import pandas as pd
 from email.mime.image import MIMEImage
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from PIL import Image
 import logging

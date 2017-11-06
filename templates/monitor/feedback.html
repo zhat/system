@@ -76,7 +76,9 @@
         </table>
     <br />
     </div>
+    <h4 class="text-center">周增长量</h4>
     <div class="container-fluid" id="main" style="height:600px;"></div>
+    <h4 class="text-center">月增长量</h4>
     <div class="container-fluid" id="main2" style="height:600px;"></div>
 {% endblock context %}
 {% block js %}
@@ -90,14 +92,14 @@
         // 指定图表的配置项和数据
         //myChart.title = '折柱混合';
         option = {
-             title: {
-                top: 0,
-                text: '周增长量',
-                left: 'center',
-                textStyle: {
-                    color: '#000'
-                }
-            },
+{#             title: {#}
+{#                top: 0,#}
+{#                text: '周增长量',#}
+{#                left: 'center',#}
+{#                textStyle: {#}
+{#                    color: '#000'#}
+{#                }#}
+{#            },#}
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {
@@ -219,14 +221,14 @@
         // 指定图表的配置项和数据
         //myChart.title = '折柱混合';
         option = {
-             title: {
-                top: 0,
-                text: '月增长量',
-                left: 'center',
-                textStyle: {
-                    color: '#000'
-                }
-            },
+{#             title: {#}
+{#                top: 0,#}
+{#                text: '月增长量',#}
+{#                left: 'center',#}
+{#                textStyle: {#}
+{#                    color: '#000'#}
+{#                }#}
+{#            },#}
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {

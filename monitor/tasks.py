@@ -173,6 +173,8 @@ def execute_crawler(spider):
     logger.debug(old_path)
     os.chdir(settings.SCRAPY_PROJECT_DIR)
     log_file_name = "%s.log"%(today)
-    cmd = settings.SCRAPY_CMD_PATH+" crawl "+spider+" >> "+os.path.join(settings.SCRAPY_LOG_DIR,spider,log_file_name)+" 2>&1 &"
+    # cmd = settings.SCRAPY_CMD_PATH+" crawl "+spider+" >> "+os.path.join(settings.SCRAPY_LOG_DIR,spider,log_file_name)+" 2>&1"
+    cmd = settings.SCRAPY_CMD_PATH+" crawl "+spider
     logging.debug(cmd)
     subprocess.call(cmd,shell=True)
+    os.chdir(old_path)

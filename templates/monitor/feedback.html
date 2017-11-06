@@ -59,8 +59,8 @@
             {% for feedback_count in feedback_count_list %}
                 <tr>
                 {% if forloop.first %}
-                    <td rowspan="4">{{ feedback_count.date }}</td>
-                    <td rowspan="4">{{ feedback_count.zone }}</td>
+                    <td rowspan="{{ feedback_count_list|length }}">{{ feedback_count.date }}</td>
+                    <td rowspan="{{ feedback_count_list|length }}">{{ feedback_count.zone }}</td>
                 {% endif %}
                     <td><a href="{{ feedback_count.shop_url }}" target="_blank">{{ feedback_count.shop_name }}</a></td>
                     <td>{{ feedback_count.last_30_days }}</td>

@@ -11,24 +11,22 @@
 
 {% block context %}
     <div class="container">
-        <h2 class="text-center">订单查询</h2>
+        <h2 class="text-center">按profile查找订单</h2>
         <br />
-        <form class="form-horizontal"  action="{% url 'order:search' %}" method="GET">
+        <form class="form-horizontal"  action="{% url 'order:search_by_profile' %}" method="GET">
             <div class="form-group">
                 <label for="profile" class="col-sm-4 control-label">profile</label>
                 <div class="col-sm-4">
-                    {% if profile %}
-                        <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" value="{{ profile }}" required />
-                    {% else %}
-                        <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" required />
-                    {% endif %}
+                    <input type="text" class="form-control" id="profile" name="profile" placeholder="profile" required />
                 </div>
                 <div class="col-sm-4">
                     <button type="submit" class="btn btn-primary">查 询</button>
+                    <button type="reset" class="btn btn-primary" style="margin-left:20px">清 空</button>
                 </div>
             </div>
         </form>
         <br />
+        {% if order_list %}
         <table class="table table-bordered  table-striped">
             <thead>
             <tr>
@@ -49,6 +47,7 @@
             {% endfor %}
             </tbody>
         </table>
+    {% endif %}
     </div>
     {% if order_list %}
     <div class="container">
@@ -73,7 +72,7 @@
             <br />
             <h4 class="text-danger">没有查询到订单信息,请确认profile是否输入正确</h4>
             <br />
-            <h4>请点击<a href="{% url 'spider:orders' %}">后台任务</a>登记相关信息</h4>
+            <h4 class="text-danger">如果没有找到，请<a href="{% url 'order:search_by_name' %}">按姓名查找</a></h4>
         </div>
     {% endif %}
 
@@ -81,6 +80,7 @@
 
 {% block js %}
     <script>
-    $('#li_order').attr('class','active');
+    $('#li_search_by_profile').attr('class','active');
+    $('#profile').val("{{ profile }}");
     </script>
 {% endblock js %}

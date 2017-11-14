@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Feedback{% endblock title %}
+{% block css %}
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+    <style type="text/css">
+        .table tbody tr td {
+            vertical-align: middle;
+        }
+    </style>
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    <h2 class="text-center">Feedback统计</h2>
+    <br />
+    <form class="form-horizontal"  action="{% url 'monitor:feedback_week' %}" method="GET">
+    <div class="row">
+        <div class="form-group">
+            <label for="zone" class="col-md-offset-3 col-md-1 control-label">站点</label>
+            <div class="col-md-3">
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        {% for zone in zones %}
+                        <option>{{ zone }}</option>
+                        {% endfor %}
+                    </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+            </div>
+        </div>
+    </div>
+    </form>
+    <br />
+    </div>
+    <h4 class="text-center">周增长量</h4>
+    <div class="container-fluid" id="main" style="height:600px;"></div>
+{% endblock context %}
+{% block js %}
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        //myChart.title = '折柱混合';
+        option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    crossStyle: {
+                        color: '#999'
+                    }
+                },
+                formatter:function(params){
+                    var html = '';
+                    if(params.length>0){
+                        Xvalue = params[0].axisValue;
+                        for ( var int = 0; int < params.length; int++) {
+                        html+=params[int].seriesName+':'+params[int].data+'<br>';
+                            }
+                    }
+                    return html;
+                    }
+            },
+            label:{
+                normal:{
+                show: false,
+                position: 'inside'}
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {show: true}
+                }
+            },
+            legend: {
+                right:'20%',
+                data:{{ shop_name_list|safe }}
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    boundaryGap: false,
+                    data:{{  list_week_date_list|safe }},
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '周增长量',
+                    min: 0,
+                    max: {{ max_value_of_weeks }},
+                    interval: {{ interval_of_weeks }},
+                    axisLabel: {
+                    }
+                }
+            ],
+            series: [
+                {% for last_week in last_week_list %}
+                {
+                    name:'{{ last_week.shop_name }}',
+                    type:'line',
+                    data:{{ last_week.last_week }},
+                    itemStyle:{
+                        normal: {
+                            }
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+        function GetQueryString(name) {
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)return  unescape(r[2]); return null;
+        };
+    function doQuery(form) {
+        if (form.zone.value==""){
+            form.zone.value = GetQueryString('zone');
+        }
+        document.myform.submit();
+    };
+    </script>
+{% endblock js %}

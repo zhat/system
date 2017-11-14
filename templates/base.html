@@ -95,8 +95,9 @@
               <li>
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">订单查询<span class="caret"></span></a>
                   <ul class="dropdown-menu">
-                      <li class="" id="li_order"><a href="{% url 'order:search' %}">订单查询</a></li>
-                      <li class="" id="li_spider"><a href="{% url 'spider:orders' %}">任务查询</a></li>
+                      <li class="" id="li_search_by_profile"><a href="{% url 'order:search_by_profile' %}">profile查找订单</a></li>
+                      <li class="" id="li_search_by_name"><a href="{% url 'order:search_by_name' %}">姓名查找订单</a></li>
+                      <li class="" id="li_search_by_name_and_profile"><a href="{% url 'order:search_by_name_and_profile' %}">姓名、profile查找订单</a></li>
                   </ul>
               </li>
               {% endif %}

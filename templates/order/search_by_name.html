@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}订单查询{% endblock title %}
+{% block css %}
+    <style type="text/css">
+        .pagination{
+            margin-left: 450px;
+        }
+    </style>
+{% endblock css %}
+
+{% block context %}
+    <div class="container">
+        <h2 class="text-center">按姓名查找订单</h2>
+        <br />
+        <form class="form-horizontal"  action="{% url 'order:search_by_name' %}" method="GET">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="profile" class="col-md-2 control-label">zone</label>
+                    <div class="col-md-10">
+                        <select name="zone" id="zone" class="form-control" required>
+                            <option></option>
+                            <option>US</option>
+                            <option>DE</option>
+                            <option>JP</option>
+                            <option>CA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="profile" class="col-md-2 control-label">name</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="name" required/>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="profile" class="col-md-2 control-label">asin</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">查 询</button>
+                    <button type="reset" class="btn btn-primary" style="margin-left:20px">清 空</button>
+                </div>
+            </div>
+        </form>
+        <br />
+        {% if order_of_name %}
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>zone</th>
+                <th>Order ID</th>
+                <th>name</th>
+                <th>Order Time</th>
+                <th>asin</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in order_of_name %}
+                <tr>
+                    <td>{{ order.zone }}</td>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>{{ order.order_time }}</td>
+                    <td>{{ order.asin_list }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        {% if name and not order_of_name %}
+            <div class="text-center">
+            <br />
+            <h4 class="text-danger">没有查询到订单信息</h4>
+            <br />
+        </div>
+        {% endif %}
+    </div>
+
+{% endblock context %}
+
+{% block js %}
+    <script>
+    $('#li_search_by_name').attr('class','active');
+    $('#name').val("{{ name }}");
+    $('#profile').val("{{ profile }}");
+    $('#asin').val("{{ asin }}");
+    $("#zone").val("{{ zone }}");
+    </script>
+{% endblock js %}

@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from PIL import Image
 import logging
+from selenium import webdriver
 
 logger = logging.getLogger("django")
 
@@ -86,8 +87,9 @@ def feedback_image():
     plt.xticks(x, dates, rotation=60)
     for shop_name in shop_name_list:
         last_week = list(map(int, data_frame.loc[shop_name]['last_week'].values))
-        plt.plot(x, last_week)
+        plt.plot(x, last_week,label=shop_name)
     #plt.show()
+    plt.legend(loc='upper center',ncol=3)
     #plt.title("周增长量<br/><br/>")
     base_path = settings.IMAGE_PATH
     base_file_path = os.path.join(base_path,"feedback_line_base{}.png".format(int(time.time())))
@@ -178,3 +180,19 @@ def execute_crawler(spider):
     logging.debug(cmd)
     subprocess.call(cmd,shell=True)
     os.chdir(old_path)
+
+def get_pict():
+    driver = webdriver.PhantomJS()
+    try:
+        driver.maximize_window()
+    except Exception as err:
+        print(err)
+    driver.get("http://localhost:8000/monitor/feedback_week/")
+    time.sleep(3)
+    base_path = settings.IMAGE_PATH
+    time_str = int(time.time() * 10000000)
+    image_path = os.path.join(base_path, "week{}.png".format(time_str))
+    image_path_png = os.path.join(base_path, "{}.png".format(time_str))
+    driver.get_screenshot_as_file(image_path)  # 比较好理解
+    driver.quit()
+

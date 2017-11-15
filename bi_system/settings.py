@@ -140,6 +140,14 @@ DATABASES = {
         'PASSWORD':'qaz123456',
         'HOST':'192.168.2.97',
         'PORT':'3306',
+    },
+    'remote': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'leamazon',
+        'USER':'ama_account',
+        'PASSWORD':'T89ZY#UQWS',
+        'HOST':'192.168.2.23',
+        'PORT':'3306',
     }
 }
 TASKS_DATABASE = {

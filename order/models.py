@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class AmazonOrderAll(models.Model):
+class AmazonOrderRemote(models.Model):
     platform = models.CharField(max_length=32)
     channel = models.CharField(max_length=40)
     order_id = models.CharField(max_length=80)
@@ -30,7 +30,7 @@ class AmazonOrderAll(models.Model):
         managed = False
         db_table = 'amazon_order'
 
-class AmazonOrderItem(models.Model):
+class AmazonOrderItemRemote(models.Model):
     parent_id = models.IntegerField()
     amazon_item_id = models.CharField(max_length=40)
     title = models.CharField(max_length=255)

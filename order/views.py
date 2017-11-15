@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from datetime import datetime
-from .models import OrderData, AmazonOrderAll,AmazonOrderItem
+from .models import OrderData, AmazonOrderRemote,AmazonOrderItemRemote
 from django.contrib.auth.decorators import login_required
 from .forms import AdviseForm
 from django.http import HttpResponseRedirect
@@ -34,8 +34,8 @@ def search_by_name(request):
     print(name)
     order_of_name = []
     if name and zone:
-        #print(datetime.now())
-        order_list = AmazonOrderAll.objects.filter(platform=zone).\
+        print(datetime.now())
+        order_list = AmazonOrderRemote.objects.using('remote').filter(platform=zone).\
             filter(customer_name__iexact=name).all()
         # if asin:
         #     order_id_list =[order.id for order in order_list]
@@ -44,7 +44,7 @@ def search_by_name(request):
         #             filter(asin=asin).\
         #             filter(parent_id__in=order_id_list).all()
         for order in order_list:
-            order_items = AmazonOrderItem.objects. \
+            order_items = AmazonOrderItemRemote.objects.using('remote'). \
                          filter(parent_id=order.id).all()
             order_item_asin_list = [order_item.asin for order_item in order_items]
             order_dict = {
@@ -55,7 +55,7 @@ def search_by_name(request):
                 'asin_list':','.join(order_item_asin_list)
             }
             order_of_name.append(order_dict)
-        #print(datetime.now())
+        print(datetime.now())
         return render(request, 'order/search_by_name.html',
                       {'order_of_name':order_of_name,'name':name,'zone':zone,'asin':asin})
     else:
@@ -69,7 +69,7 @@ def search_by_name_and_profile(request):
     asin = request.GET.get('asin', '').strip()
     order_of_name = []
     if name and zone:
-        order_list = AmazonOrderAll.objects.filter(platform=zone).\
+        order_list = AmazonOrderRemote.objects.filter(platform=zone).\
             filter(customer_name__iexact=name).all()
         # if asin:
         #     order_id_list =[order.id for order in order_list]
@@ -78,7 +78,7 @@ def search_by_name_and_profile(request):
         #             filter(asin=asin).\
         #             filter(parent_id__in=order_id_list).all()
         for order in order_list:
-            order_items = AmazonOrderItem.objects. \
+            order_items = AmazonOrderItemRemote.objects. \
                          filter(parent_id=order.id).all()
             order_item_asin_list = [order_item.asin for order_item in order_items]
             order_dict = {

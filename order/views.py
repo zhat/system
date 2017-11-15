@@ -31,8 +31,10 @@ def search_by_name(request):
     name = request.GET.get('name', '').strip()
     zone = request.GET.get('zone', '').strip()
     asin = request.GET.get('asin', '').strip()
+    print(name)
     order_of_name = []
     if name and zone:
+        #print(datetime.now())
         order_list = AmazonOrderAll.objects.filter(platform=zone).\
             filter(customer_name__iexact=name).all()
         # if asin:
@@ -53,7 +55,7 @@ def search_by_name(request):
                 'asin_list':','.join(order_item_asin_list)
             }
             order_of_name.append(order_dict)
-
+        #print(datetime.now())
         return render(request, 'order/search_by_name.html',
                       {'order_of_name':order_of_name,'name':name,'zone':zone,'asin':asin})
     else:

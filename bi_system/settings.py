@@ -128,7 +128,7 @@ CELERYD_CONCURRENCY = 1  # 并发worker数
 CELERYD_MAX_TASKS_PER_CHILD = 100    # 每个worker最多执行10个任务就会被销毁，可防止内存泄露
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-DEBUG = True
+DEBUG = False
 #SECRET_KEY = 'rx6h^!7y0z-61-u_#o5bq%twi(u9wn7#@yzm+7nf0j7+)u#cyj'
 ALLOWED_HOSTS = ['127.0.0.1','localhost','192.168.2.97']
 

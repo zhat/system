@@ -254,8 +254,8 @@ EMAIL_HOST_USER = 'yaoxuzhao@ledbrighter.com'
 EMAIL_HOST_PASSWORD = 'qazQAZ123456@'
 #收件人看到的发件人
 EMAIL_FROM = 'yaoxuzhao@ledbrighter.com'
-#EMAIL_TO = ['fuqiang@ledbrighter.com','leo@leinaled.com','yangzhixiang@ledbrighter.com','yaoxuzhao@ledbrighter.com']
-EMAIL_TO = ['yaoxuzhao@ledbrighter.com']
+EMAIL_TO = ['fuqiang@ledbrighter.com','leo@leinaled.com','yangzhixiang@ledbrighter.com','yaoxuzhao@ledbrighter.com']
+#EMAIL_TO = ['yaoxuzhao@ledbrighter.com']
 EMAIL_TIMEOUT = 20
 
 IMAGE_PATH = os.path.join(BASE_DIR,"images")

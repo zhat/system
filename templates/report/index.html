@@ -37,6 +37,14 @@
     <br />
     </div>
     <div class="container-fluid" id="main" style="height:600px;"></div>
+    <div class="container-fluid text-danger">
+        <p class="col-lg-offset-1">同比：当日销售金额与前一日销售金额之比</p>
+        <p class="col-lg-offset-1">周环比：当日销售金额与前一周同一天销售金额之比</p>
+        <br />
+        <br />
+        <br />
+    </div>
+
 {% endblock context %}
 {% block js %}
     <script src="{% static 'js/echarts.js' %}"></script>
@@ -73,7 +81,14 @@
                 }
             },
             legend: {
-                data:['上周同一天','当天','昨天','同比','周环比']
+                data:['上周同一天','当天','昨天','同比','周环比'],
+                selected: {
+                    '上周同一天': true,
+                    '当天': true,
+                    '昨天': true,
+                    '同比': true,
+                    '周环比': true
+                }
             },
             xAxis: [
                 {

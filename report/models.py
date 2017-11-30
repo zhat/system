@@ -357,3 +357,45 @@ class AmazonProductBaseinfo(models.Model):
         managed = False
         db_table = 'amazon_product_baseinfo'
 
+class CompetitiveProduct(models.Model):
+    """info = {'sku': sku, 'score': score, 'comments': comments, 'zone': zone, 'asin': asin,
+            'competitive_product_asin': competitive_product_asin,
+            'competitive_product_score': competitive_product_score,
+            'competitive_product_comments': competitive_product_comments}"""
+    zone = models.CharField(max_length=63, blank=True, null=True)
+    asin = models.CharField(max_length=63, blank=True, null=True)
+    sku = models.CharField(max_length=63,blank=True, null=True)
+    score = models.CharField(max_length=63, blank=True, null=True)
+    comments = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_asin = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_score = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_comments = models.CharField(max_length=63, blank=True, null=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+
+
+class AmazonBusinessReport(models.Model):
+    zone = models.CharField(max_length=10, blank=True, null=True)
+    sub_zone = models.CharField(max_length=10, blank=True, null=True)
+    data_date = models.CharField(max_length=50, blank=True, null=True)
+    parent_asin = models.CharField(max_length=50, blank=True, null=True)
+    child_asin = models.CharField(max_length=50, blank=True, null=True)
+    sku = models.CharField(max_length=50, blank=True, null=True)
+    sessions = models.IntegerField(blank=True, null=True)
+    session_percentage = models.CharField(max_length=20, blank=True, null=True)
+    page_views = models.IntegerField(blank=True, null=True)
+    page_view_percentage = models.CharField(max_length=20, blank=True, null=True)
+    buy_box = models.CharField(max_length=20, blank=True, null=True)
+    units_ordered = models.IntegerField(blank=True, null=True)
+    units_ordered_b2b = models.IntegerField(blank=True, null=True)
+    unit_session_percentage = models.CharField(max_length=20, blank=True, null=True)
+    unit_session_percentage_b2b = models.CharField(max_length=20, blank=True, null=True)
+    ordered_product_sales = models.FloatField(blank=True, null=True)
+    ordered_product_sales_b2b = models.FloatField(blank=True, null=True)
+    total_order_items = models.IntegerField(blank=True, null=True)
+    total_order_items_b2b = models.IntegerField(blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_business_report'

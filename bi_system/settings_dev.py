@@ -147,6 +147,14 @@ DATABASES = {
         'PASSWORD':'T89ZY#UQWS',
         'HOST':'192.168.2.23',
         'PORT':'3306',
+    },
+    'sellerreport': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'amazonsellercenterreport',
+        'USER':'root',
+        'PASSWORD':'root123',
+        'HOST':'192.168.2.98',
+        'PORT':'3306',
     }
 }
 TASKS_DATABASE = {

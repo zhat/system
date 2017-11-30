@@ -10,6 +10,33 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+class AmazonBusinessReport(models.Model):
+    zone = models.CharField(max_length=10, blank=True, null=True)
+    sub_zone = models.CharField(max_length=10, blank=True, null=True)
+    data_date = models.CharField(max_length=50, blank=True, null=True)
+    parent_asin = models.CharField(max_length=50, blank=True, null=True)
+    child_asin = models.CharField(max_length=50, blank=True, null=True)
+    sku = models.CharField(max_length=50, blank=True, null=True)
+    sessions = models.IntegerField(blank=True, null=True)
+    session_percentage = models.CharField(max_length=20, blank=True, null=True)
+    page_views = models.IntegerField(blank=True, null=True)
+    page_view_percentage = models.CharField(max_length=20, blank=True, null=True)
+    buy_box = models.CharField(max_length=20, blank=True, null=True)
+    units_ordered = models.IntegerField(blank=True, null=True)
+    units_ordered_b2b = models.IntegerField(blank=True, null=True)
+    unit_session_percentage = models.CharField(max_length=20, blank=True, null=True)
+    unit_session_percentage_b2b = models.CharField(max_length=20, blank=True, null=True)
+    ordered_product_sales = models.FloatField(blank=True, null=True)
+    ordered_product_sales_b2b = models.FloatField(blank=True, null=True)
+    total_order_items = models.IntegerField(blank=True, null=True)
+    total_order_items_b2b = models.IntegerField(blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_business_report'
+
+
 class AmazonOrder(models.Model):
     platform = models.CharField(max_length=32)
     channel = models.CharField(max_length=40)
@@ -33,6 +60,7 @@ class AmazonOrder(models.Model):
     phone = models.CharField(max_length=60, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
     street = models.TextField(blank=True, null=True)
+    is_system = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -453,16 +481,17 @@ class EbayOrderFullItem(models.Model):
 
 class Feedback(models.Model):
     date = models.DateField()
-    store = models.CharField(max_length=64, blank=True, null=True)
+    shop_name = models.CharField(max_length=64, blank=True, null=True)
     last_30_days = models.IntegerField(blank=True, null=True)
     last_90_days = models.IntegerField(blank=True, null=True)
     last_12_months = models.IntegerField(blank=True, null=True)
     lifetime = models.IntegerField(blank=True, null=True)
     last_day = models.IntegerField(blank=True, null=True)
     last_week = models.IntegerField(blank=True, null=True)
+    last_month = models.IntegerField(blank=True, null=True)
     create_time = models.DateTimeField()
     update_time = models.DateTimeField()
-    station = models.CharField(max_length=64, blank=True, null=True)
+    zone = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -642,6 +671,23 @@ class ReportAsininfo(models.Model):
     class Meta:
         managed = False
         db_table = 'report_asininfo'
+
+
+class ReportCompetitiveproduct(models.Model):
+    zone = models.CharField(max_length=63, blank=True, null=True)
+    asin = models.CharField(max_length=63, blank=True, null=True)
+    sku = models.CharField(max_length=63, blank=True, null=True)
+    score = models.CharField(max_length=63, blank=True, null=True)
+    comments = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_asin = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_score = models.CharField(max_length=63, blank=True, null=True)
+    competitive_product_comments = models.CharField(max_length=63, blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'report_competitiveproduct'
 
 
 class ReportProductstock(models.Model):

@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect,Http404
-from .models import StatisticsData,StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,ProductStock
+from .models import StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,CompetitiveProduct,AmazonBusinessReport
 from django.contrib.auth.decorators import login_required
 from datetime import datetime,timedelta
 import pandas as pd
-
+from django.db.models import Q
+import re
 # Create your views here.
 
 @login_required
@@ -153,54 +154,93 @@ def product_detail(request):
 
 @login_required
 def product_detail_date(request):
+    zone = "US"
     asin = request.GET.get('asin', '').strip()
     date_str = request.GET.get('date', '').strip()
     #if not asin or not date:
     #    raise Http404
-    if not date_str:
+    if not date_str:                            #如果没有输入日期 就默认显示现在日期前两天的数据
         now = datetime.now()
         date = now - timedelta(days=2)
     else:
         date = datetime.strptime(date_str, '%Y-%m-%d')
-    product_info_list = []
+
+    asin_list = [asin]
+    competitor = CompetitiveProduct.objects.filter(zone__iexact=zone,asin=asin).first()  #filter(zone__iexact=zone)
+    if competitor:
+        asin_list.append(competitor.competitive_product_asin)   #获取竞品asin 加入asin list中
+
+    date_list = [date,date-timedelta(days=1),date-timedelta(days=7)] #分别获取当天 前一天 上周同一天日期
     product_list = []
-    product_base = AmazonProductBaseinfo.objects.filter(asin=asin)
-    for date in [date,date-timedelta(days=1),date-timedelta(days=7)]:
-        start = date
-        end = start + timedelta(hours=23, minutes=59, seconds=59)
+    for date in date_list:
         date_str = date.strftime("%Y-%m-%d")
         product = ReportData.objects.filter(asin=asin).filter(date=date_str).first()
-        product_list.append(product)
-
-        #获取某天的价格、评分和库存
-        try:
-            product_info = product_base.filter(create_date__range=(start, end)).order_by(
-                '-create_date')[0]  #取当天最后一次数据
-
-
-            product_info_list.append({
-                'asin':asin,
-                'date':date_str,
-                'in_sale_price':product_info.in_sale_price,
-                'review_avg_star':product_info.review_avg_star
+        if product:
+            product_list.append({
+                'date': product.date.strftime('%Y-%m-%d'),
+                'asin': product.asin,
+                'platform': product.platform,
+                'station': product.station,
+                'qty': product.qty,
+                'count': product.count,
+                'currencycode': product.currencycode,
+                'price': product.price,
+                'sametermrate': '%.2f%%'%(product.sametermrate*100),
+                'weekrate': '%.2f%%'%(product.weekrate*100)
             })
-        except IndexError:
-            product_info_list.append({
-                 'asin': asin,
-                 'date': date_str,
-                 'in_sale_price': "",
-                 'review_avg_star': ""
-             })
-        rd_list = ReportData.objects.filter(asin=asin)
-        if rd_list:
-            sku = rd_list[0].sku
-            stock = ProductStock.objects.filter(date=date_str).filter(sku=sku)
-            if stock:
-                product_info_list[-1]['stock']=stock[0].stock
-            else:
-                product_info_list[-1]['stock'] = 0
-        else:
-            product_info_list[-1]['stock'] = 0
 
-    return render(request,'report/product_date.html',{'asin':asin,'product_info_list':product_info_list,
+    tuples = [(asin, date.strftime("%Y-%m-%d"))
+              for asin in asin_list for date in date_list]
+    index = pd.MultiIndex.from_tuples(tuples, names=['asin', 'date'])
+    columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
+               'total_order_items','conversion_rate']
+    data_frame = pd.DataFrame(None, index=index, columns=columns)
+    print(data_frame)
+    print(data_frame.T)
+    for asin in asin_list:
+        #获取某天的价格、评分和库存
+        for date in date_list:
+            start = date
+            end = start + timedelta(hours=23, minutes=59, seconds=59)
+            date_str = date.strftime("%Y-%m-%d")
+            product_base = AmazonProductBaseinfo.objects.filter(asin=asin).exclude(brand_url="Unknown")
+            product_info_list = product_base.filter(create_date__range=(start, end)).order_by(
+                '-create_date')  #取当天最后一次数据
+            print(product_info_list)
+            if product_info_list:
+                product_info = product_info_list[0]
+                data_frame.loc[(asin, date_str), 'in_sale_price'] = product_info.lowest_price
+                data_frame.loc[(asin, date_str), 'review_avg_star'] = product_info.review_avg_star
+                data_frame.loc[(asin, date_str), 'stock'] = product_info.stock_situation
+                # if product_info.stock_situation == "In Stock.":
+                #     pass #有库存
+                # elif product_info.stock_situation == "":
+                #     pass  #库存状态为空
+                # elif re.findall(r'Only 5 left in stock',product_info.stock_situation):
+                #     num = re.findall(r'Only (\d{1,2}) left in stock', product_info.stock_situation)
+                #     print(num)
+                #     pass #有库存
+                # else:
+                #     pass #没有库存
+            print(zone,asin,date_str)
+            business_report = AmazonBusinessReport.objects.using("sellerreport").\
+                filter(zone__iexact=zone.lower()).filter(child_asin=asin).filter(data_date=date_str).first()
+            if business_report:
+                data_frame.loc[(asin, date_str), 'sessions'] = business_report.sessions
+                data_frame.loc[(asin, date_str), 'session_percentage'] = business_report.session_percentage
+                data_frame.loc[(asin, date_str), 'total_order_items'] = business_report.total_order_items
+                if business_report.sessions:
+                    data_frame.loc[(asin, date_str), 'conversion_rate'] ="{}%".format(
+                        round(business_report.total_order_items/business_report.sessions,2))
+                else:
+                    data_frame.loc[(asin,date_str), 'conversion_rate'] = 0
+
+
+    data_list = data_frame.T.to_csv().split('\n')
+    product_info_list = [data.split(',') for data in data_list if data]
+    product_info_thead = product_info_list[1]
+    product_info_tbody = product_info_list[2:]
+    return render(request,'report/product_date.html',{'asin':asin_list[0],'asin_list':asin_list,
+                                                      'product_info_thead':product_info_thead,
+                                                      "product_info_tbody":product_info_tbody,
                                                       'product_list':product_list})

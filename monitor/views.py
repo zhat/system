@@ -185,6 +185,6 @@ def feedback_week(request):
         'shop_name_list': shop_name_list,  # 店铺列表
         'list_week_date_list': week_date_list,  # 周增量日期
         'max_value_of_weeks': max_value_of_weeks,  # 周增量最大值
-                                                   'interval_of_weeks': interval_of_weeks,  # 周增量间隔
-                                                   'last_week_list': last_week_list,  # 周增量数据
-                                                   'zones': zone_list})
+        'interval_of_weeks': interval_of_weeks,  # 周增量间隔
+        'last_week_list': last_week_list,  # 周增量数据
+        'zones': zone_list})

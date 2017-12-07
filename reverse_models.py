@@ -37,6 +37,21 @@ class AmazonBusinessReport(models.Model):
         db_table = 'amazon_business_report'
 
 
+class AmazonDailyInventory(models.Model):
+    sku = models.CharField(max_length=50, blank=True, null=True)
+    fnsku = models.CharField(max_length=50, blank=True, null=True)
+    asin = models.CharField(max_length=50, blank=True, null=True)
+    afn_fulfillable_quantity = models.IntegerField(blank=True, null=True)
+    zone = models.CharField(max_length=20, blank=True, null=True)
+    sub_zone = models.CharField(max_length=20, blank=True, null=True)
+    data_date = models.CharField(max_length=20, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_daily_inventory'
+
+
 class AmazonOrder(models.Model):
     platform = models.CharField(max_length=32)
     channel = models.CharField(max_length=40)
@@ -148,6 +163,22 @@ class AmazonRefShopList(models.Model):
     class Meta:
         managed = False
         db_table = 'amazon_ref_shop_list'
+
+
+class AmazonTodayDeal(models.Model):
+    date = models.CharField(max_length=32)
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=31, blank=True, null=True)
+    page = models.IntegerField(blank=True, null=True)
+    page_index = models.IntegerField(blank=True, null=True)
+    deal_url = models.TextField(blank=True, null=True)
+    deal_type = models.CharField(max_length=127, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+    update_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_today_deal'
 
 
 class AuthGroup(models.Model):
@@ -667,6 +698,8 @@ class ReportAsininfo(models.Model):
     asin = models.CharField(max_length=128, blank=True, null=True)
     platform = models.CharField(max_length=32, blank=True, null=True)
     station = models.CharField(max_length=64, blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
+    update_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -682,8 +715,8 @@ class ReportCompetitiveproduct(models.Model):
     competitive_product_asin = models.CharField(max_length=63, blank=True, null=True)
     competitive_product_score = models.CharField(max_length=63, blank=True, null=True)
     competitive_product_comments = models.CharField(max_length=63, blank=True, null=True)
-    create_date = models.DateTimeField()
-    update_date = models.DateTimeField()
+    create_date = models.DateTimeField(blank=True, null=True)
+    update_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -721,6 +754,8 @@ class ReportReportdata(models.Model):
     weekrate = models.FloatField(blank=True, null=True)
     monthrate = models.FloatField(blank=True, null=True)
     status = models.CharField(max_length=32, blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
+    update_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -742,6 +777,8 @@ class ReportStatisticsdata(models.Model):
     weekrate = models.FloatField(blank=True, null=True)
     monthrate = models.FloatField(blank=True, null=True)
     status = models.CharField(max_length=32, blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
+    update_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -761,6 +798,8 @@ class ReportStatisticsofplatform(models.Model):
     sametermrate = models.FloatField(blank=True, null=True)
     weekrate = models.FloatField(blank=True, null=True)
     monthrate = models.FloatField(blank=True, null=True)
+    create_date = models.DateTimeField(blank=True, null=True)
+    update_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False

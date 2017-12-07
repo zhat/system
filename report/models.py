@@ -235,6 +235,8 @@ class StatisticsData(models.Model):
     weekrate=models.FloatField("周环比",null=True)
     monthrate=models.FloatField("月环比",null=True)
     status=models.CharField("订单状态",max_length=32,null=True)
+    create_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
 
     def __str__(self):
@@ -257,6 +259,8 @@ class StatisticsOfPlatform(models.Model):
     sametermrate = models.FloatField("同比", null=True)
     weekrate = models.FloatField("周环比", null=True)
     monthrate = models.FloatField("月环比", null=True)
+    create_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
 
     def __str__(self):
@@ -274,6 +278,8 @@ class AsinInfo(models.Model):
     asin = models.CharField("asin", max_length=128, null=True)
     platform = models.CharField("账号", max_length=32, null=True)
     station = models.CharField("站点", max_length=64, null=True)
+    create_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
 
     def __str__(self):
@@ -299,6 +305,8 @@ class ReportData(models.Model):
     weekrate = models.FloatField("周环比", null=True)
     monthrate = models.FloatField("月环比", null=True)
     status = models.CharField("订单状态", max_length=32, null=True)
+    create_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     #create_time = models.DateTimeField(auto_now_add=True,default=datetime.now(),null=True)
     #update_time = models.DateTimeField(auto_now=True,default=datetime.now(),null=True)
@@ -370,8 +378,8 @@ class CompetitiveProduct(models.Model):
     competitive_product_asin = models.CharField(max_length=63, blank=True, null=True)
     competitive_product_score = models.CharField(max_length=63, blank=True, null=True)
     competitive_product_comments = models.CharField(max_length=63, blank=True, null=True)
-    create_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
+    create_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
 
 
 class AmazonBusinessReport(models.Model):
@@ -399,3 +407,46 @@ class AmazonBusinessReport(models.Model):
     class Meta:
         managed = False
         db_table = 'amazon_business_report'
+
+
+class AmazonTodayDeal(models.Model):
+    date = models.CharField(max_length=32)
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=31, blank=True, null=True)
+    page = models.IntegerField(blank=True, null=True)
+    page_index = models.IntegerField(blank=True, null=True)
+    deal_url = models.TextField(blank=True, null=True)
+    deal_type = models.CharField(max_length=127, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+    update_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_today_deal'
+
+class AmazonDailyInventory(models.Model):
+    sku = models.CharField(max_length=50, blank=True, null=True)
+    fnsku = models.CharField(max_length=50, blank=True, null=True)
+    asin = models.CharField(max_length=50, blank=True, null=True)
+    afn_fulfillable_quantity = models.IntegerField(blank=True, null=True)
+    zone = models.CharField(max_length=20, blank=True, null=True)
+    sub_zone = models.CharField(max_length=20, blank=True, null=True)
+    data_date = models.CharField(max_length=20, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_daily_inventory'
+
+class ProductInfo(models.Model):
+    date = models.DateField("日期")
+    zone = models.CharField(max_length=20, blank=True, null=True)
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    create_time = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+
+    def __str__(self):
+        return self.asin
+    class Meta:
+        verbose_name = "商品信息"
+        verbose_name_plural = "商品信息"

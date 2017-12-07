@@ -1,10 +1,9 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect,Http404
-from .models import StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,CompetitiveProduct,AmazonBusinessReport
+from django.http import Http404
+from .models import StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,CompetitiveProduct,AmazonBusinessReport,AmazonTodayDeal,AmazonDailyInventory
 from django.contrib.auth.decorators import login_required
 from datetime import datetime,timedelta
 import pandas as pd
-from django.db.models import Q
 import re
 # Create your views here.
 
@@ -155,7 +154,7 @@ def product_detail(request):
 @login_required
 def product_detail_date(request):
     zone = "US"
-    asin = request.GET.get('asin', '').strip()
+    product_asin = request.GET.get('asin', '').strip()
     date_str = request.GET.get('date', '').strip()
     #if not asin or not date:
     #    raise Http404
@@ -165,16 +164,16 @@ def product_detail_date(request):
     else:
         date = datetime.strptime(date_str, '%Y-%m-%d')
 
-    asin_list = [asin]
-    competitor = CompetitiveProduct.objects.filter(zone__iexact=zone,asin=asin).first()  #filter(zone__iexact=zone)
-    if competitor:
+    asin_list = [product_asin]
+    competitor = CompetitiveProduct.objects.filter(zone__iexact=zone,asin=product_asin).first()  #filter(zone__iexact=zone)
+    if competitor and competitor.competitive_product_asin:
         asin_list.append(competitor.competitive_product_asin)   #获取竞品asin 加入asin list中
 
     date_list = [date,date-timedelta(days=1),date-timedelta(days=7)] #分别获取当天 前一天 上周同一天日期
     product_list = []
     for date in date_list:
         date_str = date.strftime("%Y-%m-%d")
-        product = ReportData.objects.filter(asin=asin).filter(date=date_str).first()
+        product = ReportData.objects.filter(asin=product_asin).filter(date=date_str).first()
         if product:
             product_list.append({
                 'date': product.date.strftime('%Y-%m-%d'),
@@ -193,7 +192,7 @@ def product_detail_date(request):
               for asin in asin_list for date in date_list]
     index = pd.MultiIndex.from_tuples(tuples, names=['asin', 'date'])
     columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
-               'total_order_items','conversion_rate']
+               'total_order_items','conversion_rate','today_deal_index','today_deal_type']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
     print(data_frame)
     print(data_frame.T)
@@ -211,17 +210,27 @@ def product_detail_date(request):
                 product_info = product_info_list[0]
                 data_frame.loc[(asin, date_str), 'in_sale_price'] = product_info.lowest_price
                 data_frame.loc[(asin, date_str), 'review_avg_star'] = product_info.review_avg_star
-                data_frame.loc[(asin, date_str), 'stock'] = product_info.stock_situation
-                # if product_info.stock_situation == "In Stock.":
-                #     pass #有库存
-                # elif product_info.stock_situation == "":
-                #     pass  #库存状态为空
-                # elif re.findall(r'Only 5 left in stock',product_info.stock_situation):
-                #     num = re.findall(r'Only (\d{1,2}) left in stock', product_info.stock_situation)
-                #     print(num)
-                #     pass #有库存
-                # else:
-                #     pass #没有库存
+
+                if product_info.stock_situation == "In Stock.":
+                    stock_situation = product_info.stock_situation
+                elif product_info.stock_situation == "":
+                    stock_situation = "NULL"
+                elif re.findall(r'Only 5 left in stock',product_info.stock_situation):
+                    num = re.findall(r'Only (\d{1,2}) left in stock', product_info.stock_situation)
+                    stock_situation = num[0]
+                else:
+                    stock_situation = "无库存"
+                data_frame.loc[(asin, date_str), 'stock'] = stock_situation
+            if asin == product_asin:        #如果asin是公司产品asin 则取出详细库存显示
+                amazon_daily = AmazonDailyInventory.objects.using("sellerreport").\
+                    filter(zone__iexact=zone.lower()).\
+                    filter(data_date=date_str).\
+                    filter(asin=asin).first()
+                if amazon_daily:
+                    data_frame.loc[(asin, date_str), 'stock'] = amazon_daily.afn_fulfillable_quantity
+                else:
+                    data_frame.loc[(asin, date_str), 'stock'] = 0
+
             print(zone,asin,date_str)
             business_report = AmazonBusinessReport.objects.using("sellerreport").\
                 filter(zone__iexact=zone.lower()).filter(child_asin=asin).filter(data_date=date_str).first()
@@ -231,9 +240,17 @@ def product_detail_date(request):
                 data_frame.loc[(asin, date_str), 'total_order_items'] = business_report.total_order_items
                 if business_report.sessions:
                     data_frame.loc[(asin, date_str), 'conversion_rate'] ="{}%".format(
-                        round(business_report.total_order_items/business_report.sessions,2))
+                        round((business_report.total_order_items/business_report.sessions)*100,2))
                 else:
                     data_frame.loc[(asin,date_str), 'conversion_rate'] = 0
+
+            today_deal = AmazonTodayDeal.objects.filter(zone__iexact=zone).filter(asin=asin).filter(date=date_str).first()
+            if today_deal:
+                today_deal_index = (today_deal.page-1)*48 + today_deal.page_index + 1
+                data_frame.loc[(asin, date_str), 'today_deal_index'] = today_deal_index
+                data_frame.loc[(asin, date_str), 'today_deal_type'] = today_deal.deal_type
+
+                #排名 类型
 
 
     data_list = data_frame.T.to_csv().split('\n')

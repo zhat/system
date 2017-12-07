@@ -160,11 +160,10 @@ def get_product_info_from_order():
     last_month = date - timedelta(days=30)
     last_month_str = last_month.strftime("%Y-%m-%d")
     print(datetime.now())
-    order_items = AmazonOrderItem.objects.values('asin','sku','parent__platform').distinct().\
+    order_items = AmazonOrderItem.objects.using('remote').values('asin','sku','parent__platform').distinct().\
         filter(parent__purchase_at__gt=last_month_str).order_by('parent__platform').all()
-    print(order_items)
-    print(len(order_items))
-    print(datetime.now())
+    #print(order_items)
+    #print(len(order_items))
     date_str = date.strftime("%Y-%m-%d")
     for order_item in order_items:
         product_info = ProductInfo.objects.filter(date=date_str,zone=order_item['parent__platform'],
@@ -173,3 +172,5 @@ def get_product_info_from_order():
             continue
         ProductInfo.objects.create(date=date_str,zone=order_item['parent__platform']
                                    ,asin=order_item['asin'],sku=order_item['sku']).save()
+
+    print(datetime.now())

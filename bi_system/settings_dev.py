@@ -195,6 +195,10 @@ CELERY_ROUTES = {
     'report.tasks.clean': { # tasks.add的消息会进入web_tasks队列
     'queue': 'web_tasks',
     'routing_key': 'web.insert_data',
+    },
+    'report.tasks.get_product_info_from_order': { # tasks.add的消息会进入web_tasks队列
+    'queue': 'web_tasks',
+    'routing_key': 'web.insert_data',
     }
 }
 

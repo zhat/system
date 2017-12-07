@@ -380,7 +380,9 @@ class CompetitiveProduct(models.Model):
     competitive_product_comments = models.CharField(max_length=63, blank=True, null=True)
     create_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-
+    class Meta:
+        managed = False
+        db_table = "report_competitiveproduct"
 
 class AmazonBusinessReport(models.Model):
     zone = models.CharField(max_length=10, blank=True, null=True)

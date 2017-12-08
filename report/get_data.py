@@ -106,15 +106,16 @@ class GetStatisticsDataFromOMS():
             rows = result['rows']
             print(self.total)
             print(self.source)
+            now = datetime.now()
             for row in rows:
                 # print(row['sku'], row['asin'], row['platform'], row['station'], row['qty'], row['currencycode'],
                 #   row['deduction'],
                 #   row['price'], row['count'], row['sametermrate'], row['weekrate'], row['monthrate'], row['status'])
                 insert_url = r'INSERT INTO report_statisticsdata (`date`,sku,asin,platform,station,qty,currencycode,' \
-                     r'deduction,price,`count`,sametermrate,weekrate,monthrate,status)' \
-                     r' VALUES("%s","%s","%s","%s","%s",%d,"%s",%f,%f,%d,%f,%f,%f,"%s");'%(self.date,
+                     r'deduction,price,`count`,sametermrate,weekrate,monthrate,status,create_date,update_date)' \
+                     r' VALUES("%s","%s","%s","%s","%s",%d,"%s",%f,%f,%d,%f,%f,%f,"%s","%s","%s");'%(self.date,
                 row['sku'],row['asin'],row['platform'],row['station'],row['qty'],row['currencycode'],row['deduction'],
-                row['price'],row['count'],row['sametermrate'],row['weekrate'],row['monthrate'],row['status'])
+                row['price'],row['count'],row['sametermrate'],row['weekrate'],row['monthrate'],row['status'],now,now)
                 #print(insert_url)
                 sql_insert.append(insert_url)
             if self.total<page*50:
@@ -125,25 +126,25 @@ class GetStatisticsDataFromOMS():
                 print(count_data)
                 try:
                     insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
-                                 r'site_price,dollar_price,RMB_price) ' \
-                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f);' % (self.date,
+                                 r'site_price,dollar_price,RMB_price,create_date,update_date) ' \
+                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f,"%s","%s");' % (self.date,
                                                                          count_data['currencycode'],
                                                                          count_data['deduction'],
                                                                          count_data['taxrate'],
                                                                          float(count_data['weekrate']),
                                                                          float(count_data['monthrate']),
-                                                                         float(count_data['status']),
+                                                                         float(count_data['status']),now,now
                                                                          )
                 except Exception as e:
                     print(e)
                     insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
-                                 r'site_price,dollar_price,RMB_price) ' \
-                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f);' % (self.date,
+                                 r'site_price,dollar_price,RMB_price,create_date,update_date) ' \
+                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f,"%s","%s");' % (self.date,
                                                                          count_data['deduction'], count_data['taxrate'],
                                                                          count_data['price'],
                                                                          float(count_data['weekrate']),
                                                                          float(count_data['monthrate']),
-                                                                         float(count_data['status']),
+                                                                         float(count_data['status']),now,now
                                                                          )
                 #print(insert_url)
                 sql_insert.append(insert_url)
@@ -162,8 +163,8 @@ class GetStatisticsDataFromOMS():
 
     def clean_data(self):
         cur = self.dbconn.cursor()
-        sqlcmd = r'INSERT INTO report_asininfo(`date`,`asin`,`platform`,station,sku) SELECT DISTINCT ' \
-                 r'`date`,`asin`,`platform`,station,sku FROM report_statisticsdata WHERE date="%s";'%self.date
+        sqlcmd = r'INSERT INTO report_asininfo(`date`,`asin`,`platform`,station,sku,create_date,update_date) SELECT DISTINCT ' \
+                 r'`date`,`asin`,`platform`,station,sku,create_date,update_date FROM report_statisticsdata WHERE date="%s";'%self.date
 
         cur.execute(sqlcmd)
         #print(sqlcmd)

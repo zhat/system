@@ -192,7 +192,9 @@ def product_detail_date(request):
               for asin in asin_list for date in date_list]
     index = pd.MultiIndex.from_tuples(tuples, names=['asin', 'date'])
     columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
-               'total_order_items','conversion_rate','today_deal_index','today_deal_type']
+               'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
+    #columns = ['单价', '评分', '库存', 'sessions', 'session_percentage',
+    #           'total_order_items', 'conversion_rate', 'today_deal_index', 'today_deal_type','buy_box']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
     print(data_frame)
     print(data_frame.T)
@@ -243,8 +245,9 @@ def product_detail_date(request):
                         round((business_report.total_order_items/business_report.sessions)*100,2))
                 else:
                     data_frame.loc[(asin,date_str), 'conversion_rate'] = 0
+                data_frame.loc[(asin, date_str), 'buy_box'] = business_report.buy_box
 
-            today_deal = AmazonTodayDeal.objects.filter(zone__iexact=zone).filter(asin=asin).filter(date=date_str).first()
+            today_deal = AmazonTodayDeal.objects.filter(zone__iexact=zone.lower()).filter(asin=asin).filter(date=date_str).first()
             if today_deal:
                 today_deal_index = (today_deal.page-1)*48 + today_deal.page_index + 1
                 data_frame.loc[(asin, date_str), 'today_deal_index'] = today_deal_index

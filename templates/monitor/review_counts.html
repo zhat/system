@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Review{% endblock title %}
+
+{% block css %}
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+    <style type="text/css">
+        .pagination{
+            margin-left: 450px;
+        }
+    </style>
+{% endblock css %}
+
+{% block context %}
+    <div class="container">
+        <h2 class="text-center">Review统计排行 {{ date }}</h2>
+        <br />
+        <form class="form-horizontal"  action="{% url 'monitor:review_counts' %}" method="GET">
+        <div class="row">
+            <div class="form-group">
+{#            <label for="asin" class="col-md-1 control-label">asin</label>#}
+{#            <div class="col-md-3">#}
+{#                {% if profile %}#}
+{#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />#}
+{#                {% else %}#}
+{#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />#}
+{#                {% endif %}#}
+{#            </div>#}
+                <label for="date" class="col-md-5 control-label">日期</label>
+                <div class="col-md-3">
+                    <div class="input-daterange input-group" id="datepicker">
+                        <input type="text" class="form-control" name="date" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+                </div>
+            </div>
+        </div>
+        </form>
+        <br />
+        <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>排序</th>
+                <th>zone</th>
+                <th>asin</th>
+                <th>count</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for review in reviews %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ zone }}</td>
+                    <td><a href="{% url 'monitor:review_count_with_asin' %}?asin={{ review.asin }}">{{ review.asin }}</a></td>
+                    <td>{{ review.count }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock context %}
+
+{% block js %}
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script>
+    $('#li_product_list').attr('class','active');
+    $('#qBeginTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+});
+    function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    }
+    function doQuery(form) {
+        document.myform.submit();
+    };
+    </script>
+{% endblock js %}

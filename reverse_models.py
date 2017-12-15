@@ -150,6 +150,35 @@ class AmazonProductBaseinfo(models.Model):
         db_table = 'amazon_product_baseinfo'
 
 
+class AmazonProductReviews(models.Model):
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=20, blank=True, null=True)
+    ref_id = models.CharField(max_length=20, blank=True, null=True)
+    review_url = models.CharField(max_length=255, blank=True, null=True)
+    review_id = models.CharField(max_length=50, blank=True, null=True)
+    review_title = models.CharField(max_length=255, blank=True, null=True)
+    review_text = models.TextField(blank=True, null=True)
+    reviewer_name = models.CharField(max_length=255, blank=True, null=True)
+    reviewer_url = models.CharField(max_length=255, blank=True, null=True)
+    review_date = models.CharField(max_length=30, blank=True, null=True)
+    item_package_quantity = models.IntegerField()
+    item_color_size_info = models.CharField(max_length=20, blank=True, null=True)
+    order_index = models.IntegerField(blank=True, null=True)
+    review_star = models.CharField(max_length=20, blank=True, null=True)
+    is_verified_purchase = models.CharField(max_length=4, blank=True, null=True)
+    votes = models.CharField(max_length=20, blank=True, null=True)
+    comments = models.CharField(max_length=20, blank=True, null=True)
+    top_reviewer_info = models.CharField(max_length=50, blank=True, null=True)
+    cnt_imgs = models.IntegerField(blank=True, null=True)
+    cnt_vedios = models.IntegerField(blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_product_reviews'
+
+
 class AmazonRefShopList(models.Model):
     id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
     shop_name = models.CharField(max_length=50, blank=True, null=True)
@@ -721,6 +750,18 @@ class ReportCompetitiveproduct(models.Model):
     class Meta:
         managed = False
         db_table = 'report_competitiveproduct'
+
+
+class ReportProductinfo(models.Model):
+    date = models.DateField()
+    zone = models.CharField(max_length=20, blank=True, null=True)
+    sku = models.CharField(max_length=128, blank=True, null=True)
+    asin = models.CharField(max_length=128, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'report_productinfo'
 
 
 class ReportProductstock(models.Model):

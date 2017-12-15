@@ -58,9 +58,12 @@ def index(request):
 
     so=StatisticsOfPlatform.objects.filter(date__range=(start,end))
     for product in so:
-        data_frame.loc[product.date.strftime("%Y-%m-%d"), 'dollar_price'] = round(float(product.dollar_price), 2)
-        data_frame.loc[product.date.strftime("%Y-%m-%d"), 'weekrate'] = round(float(product.weekrate) * 100, 2)
-        data_frame.loc[product.date.strftime("%Y-%m-%d"), 'sametermrate'] = round(float(product.sametermrate) * 100, 2)
+        if product.dollar_price:
+            data_frame.loc[product.date.strftime("%Y-%m-%d"), 'dollar_price'] = round(float(product.dollar_price), 2)
+        if product.weekrate:
+            data_frame.loc[product.date.strftime("%Y-%m-%d"), 'weekrate'] = round(float(product.weekrate) * 100, 2)
+        if product.sametermrate:
+            data_frame.loc[product.date.strftime("%Y-%m-%d"), 'sametermrate'] = round(float(product.sametermrate) * 100, 2)
 
     date_list = [date.strftime("%Y/%m/%d") for date in data_frame.index]
     data_list = [float(value) for value in data_frame['dollar_price'].values]
@@ -87,11 +90,37 @@ def product_list(request):
         date = the_day_before_yesterday.strftime("%Y-%m-%d")
     print(date)
     rd_list = ReportData.objects.filter(date=date).order_by("-price")[:50]
-    rd_list = sorted(rd_list,key=lambda rd:rd.weekrate)
+    """<td>{{ forloop.counter }}
+                    <td>{{ product.date }}</td>
+                    <td>{{ product.platform }}</td>
+                    <td>{{ product.station }}</td>
+                    <td>{{ product.qty }}</td>
+                    <td>{{ product.count }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.sametermrate }}%</td>
+                    <td>{{ product.weekrate }}%</td>
+                    <td>{{ product.sku }}</td>
+                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin """
+    rd_list = [{
+                'date':rd.date,
+                'platform':rd.platform,
+                'station':rd.station,
+                'qty':rd.qty,
+                'count':rd.count,
+                'price':rd.price,
+                'sametermrate':round(rd.sametermrate*100,2),
+                'weekrate':round(rd.weekrate*100,2),
+                'sku':rd.sku,
+                'asin':rd.asin
+            } for rd in rd_list]
+    price_top10 = rd_list[:10]
+    rd_list = [rd for rd in rd_list if rd['weekrate']]
+    rd_list = sorted(rd_list,key=lambda rd:rd['weekrate'])
     rise_top10 = rd_list[-10:]
     rise_top10.reverse()
     drop_top10 = rd_list[:10]
-    return render(request,'report/product_list.html',{'date':date,'rise_top10':rise_top10,'drop_top10':drop_top10})
+    return render(request,'report/product_list.html',{'date':date,'price_top10':price_top10,
+                                                      'rise_top10':rise_top10,'drop_top10':drop_top10})
 
 @login_required
 def product_detail(request):
@@ -190,14 +219,14 @@ def product_detail_date(request):
 
     tuples = [(asin, date.strftime("%Y-%m-%d"))
               for asin in asin_list for date in date_list]
-    index = pd.MultiIndex.from_tuples(tuples, names=['asin', 'date'])
-    columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
-               'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
-    #columns = ['单价', '评分', '库存', 'sessions', 'session_percentage',
-    #           'total_order_items', 'conversion_rate', 'today_deal_index', 'today_deal_type','buy_box']
+    index = pd.MultiIndex.from_tuples(tuples, names=['asin', '日期'])
+    #columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
+    #           'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
+    columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal排名', 'deal类型']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
     print(data_frame)
     print(data_frame.T)
+    analytic_result = []
     for asin in asin_list:
         #获取某天的价格、评分和库存
         for date in date_list:
@@ -210,8 +239,8 @@ def product_detail_date(request):
             print(product_info_list)
             if product_info_list:
                 product_info = product_info_list[0]
-                data_frame.loc[(asin, date_str), 'in_sale_price'] = product_info.lowest_price
-                data_frame.loc[(asin, date_str), 'review_avg_star'] = product_info.review_avg_star
+                data_frame.loc[(asin, date_str), '单价'] = product_info.lowest_price
+                data_frame.loc[(asin, date_str), '评分'] = product_info.review_avg_star
 
                 if product_info.stock_situation == "In Stock.":
                     stock_situation = product_info.stock_situation
@@ -222,39 +251,36 @@ def product_detail_date(request):
                     stock_situation = num[0]
                 else:
                     stock_situation = "无库存"
-                data_frame.loc[(asin, date_str), 'stock'] = stock_situation
+                data_frame.loc[(asin, date_str), '库存'] = stock_situation
             if asin == product_asin:        #如果asin是公司产品asin 则取出详细库存显示
                 amazon_daily = AmazonDailyInventory.objects.using("sellerreport").\
                     filter(zone__iexact=zone.lower()).\
                     filter(data_date=date_str).\
                     filter(asin=asin).first()
                 if amazon_daily:
-                    data_frame.loc[(asin, date_str), 'stock'] = amazon_daily.afn_fulfillable_quantity
+                    data_frame.loc[(asin, date_str), '库存'] = amazon_daily.afn_fulfillable_quantity
                 else:
-                    data_frame.loc[(asin, date_str), 'stock'] = 0
+                    data_frame.loc[(asin, date_str), '库存'] = 0
 
             print(zone,asin,date_str)
             business_report = AmazonBusinessReport.objects.using("sellerreport").\
                 filter(zone__iexact=zone.lower()).filter(child_asin=asin).filter(data_date=date_str).first()
             if business_report:
-                data_frame.loc[(asin, date_str), 'sessions'] = business_report.sessions
-                data_frame.loc[(asin, date_str), 'session_percentage'] = business_report.session_percentage
-                data_frame.loc[(asin, date_str), 'total_order_items'] = business_report.total_order_items
+                data_frame.loc[(asin, date_str), '流量'] = business_report.sessions
                 if business_report.sessions:
-                    data_frame.loc[(asin, date_str), 'conversion_rate'] ="{}%".format(
+                    data_frame.loc[(asin, date_str), '转化率'] ="{}%".format(
                         round((business_report.total_order_items/business_report.sessions)*100,2))
                 else:
-                    data_frame.loc[(asin,date_str), 'conversion_rate'] = 0
+                    data_frame.loc[(asin,date_str), '转化率'] = 0
                 data_frame.loc[(asin, date_str), 'buy_box'] = business_report.buy_box
 
             today_deal = AmazonTodayDeal.objects.filter(zone__iexact=zone.lower()).filter(asin=asin).filter(date=date_str).first()
             if today_deal:
                 today_deal_index = (today_deal.page-1)*48 + today_deal.page_index + 1
-                data_frame.loc[(asin, date_str), 'today_deal_index'] = today_deal_index
-                data_frame.loc[(asin, date_str), 'today_deal_type'] = today_deal.deal_type
+                data_frame.loc[(asin, date_str), 'deal排名'] = today_deal_index
+                data_frame.loc[(asin, date_str), 'deal类型'] = today_deal.deal_type
 
                 #排名 类型
-
 
     data_list = data_frame.T.to_csv().split('\n')
     product_info_list = [data.split(',') for data in data_list if data]

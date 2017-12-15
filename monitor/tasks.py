@@ -124,10 +124,11 @@ def send_email():
     zones = [zone['zone'] for zone in zone_list]
     zone_feedback_list =[]
     for zone in zones:
-        shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback")
+        shop_list = AmazonRefShopList.objects.filter(zone=zone).filter(type="feedback").order_by("shop_name")
         # print(shop_list)
-        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone)
-        shop_name_list = [shop.shop_name for shop in shop_list]
+        ordering = 'CASE WHEN shop_name="NEON MART" THEN 1 ELSE 2 END'
+        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone).extra(
+           select={'ordering': ordering}, order_by=('ordering','shop_name'))
         shop_url_dict = dict((shop.shop_name, shop.shop_url) for shop in shop_list)
         feedback_table_data = []
         for feedback_count in feedback_count_list:

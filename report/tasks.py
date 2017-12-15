@@ -2,7 +2,7 @@ import time
 import os
 import xlrd
 from celery import shared_task
-from .models import StatisticsData,ReportData,AsinInfo,StatisticsOfPlatform,ProductStock,AmazonOrderItem,ProductInfo
+from .models import StatisticsData,ReportData,StatisticsOfPlatform,ProductStock,AmazonOrderItem,ProductInfo
 from datetime import datetime,timedelta
 from .get_data import get_data
 from django.conf import settings
@@ -11,22 +11,26 @@ from .read_email import get_email_excel
 def clean_data(date):
     """
     """
-    asin_info_list = AsinInfo.objects.filter(date=date).all()
+    asin_info_list = StatisticsData.objects.values('asin','sku','platform','station').filter(date=date).all().distinct()
     currencycode = ""
     for asin_info in asin_info_list:
-        if asin_info.asin=="None":
+        if asin_info['asin']=="None":
             continue
-        sd_list = StatisticsData.objects.filter(date=date).filter(asin=asin_info.asin).all()
-        sku=asin_info.sku
-        asin=asin_info.asin
-        platform = asin_info.platform
-        station = asin_info.station
+        sd_list = StatisticsData.objects.filter(date=date).filter(asin=asin_info['asin']).all()
+        sku=asin_info['sku']
+        asin=asin_info['asin']
+        platform = asin_info['platform']
+        station = asin_info['station']
         qty= 0
         deduction= 0.0
         price = 0.0
         count = 0
+        report_data = ReportData.objects.filter(date=date).filter(asin=asin).\
+            filter(platform=platform).filter(station=station).first()
+        if report_data:
+            continue
         for sd in sd_list:
-            if currencycode=="" and sd.currencycode!="None":
+            if currencycode == "" and sd.currencycode != "None":
                 currencycode=sd.currencycode
             qty+=sd.qty
             deduction+=round(float(sd.deduction),2)

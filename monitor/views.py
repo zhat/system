@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from .models import FeedbackInfo, AmazonRefShopList
+from django.db.models import Count
+from .models import FeedbackInfo, AmazonRefShopList, AmazonProductReviews
 from datetime import datetime, timedelta
 import pandas as pd
 import logging
@@ -188,3 +189,32 @@ def feedback_week(request):
         'interval_of_weeks': interval_of_weeks,  # 周增量间隔
         'last_week_list': last_week_list,  # 周增量数据
         'zones': zone_list})
+
+def review_counts(request):
+    date = request.GET.get("date", '').strip()
+    zone = "US"
+    if not date:
+        now = datetime.now()
+        date = now.strftime("%Y-%m-%d")
+    start = datetime.strptime(date,"%Y-%m-%d")
+    end = start+timedelta(hours=23,minutes=59,seconds=59)
+    print(start,end)
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    reviews = AmazonProductReviews.objects.using('front').values('asin').\
+        filter(create_date__range=(start, end)).annotate(count=Count('id')).order_by('-count')
+    return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
+
+def review_count_with_asin(request):
+    asin = request.GET.get("asin", '').strip()
+    if not asin:
+        asin = "B005FEGYJC"
+    zone = "US"
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    """ordering = 'CASE WHEN shop_name="NEON MART" THEN 1 ELSE 2 END'
+        feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone).extra(
+           select={'ordering': ordering}, order_by=('ordering','shop_name'))"""
+    date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+    reviews = AmazonProductReviews.objects.using('front').extra(select={'date':date_format}).values('date').\
+        filter(asin=asin).annotate(count=Count('id')).order_by('date')
+    print(reviews.query)
+    return render(request,"monitor/review_count_with_asin.html",{"zone":zone,"asin":asin,"reviews":reviews})

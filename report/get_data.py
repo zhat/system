@@ -232,7 +232,7 @@ def get_data(date):
         gs = GetStatisticsDataFromOMS(date)
         gs.login(driver)
         result = gs.get_data(driver)
-        gs.clean_data()
+        #gs.clean_data()
         #time.sleep(1000)
     finally:
         driver.quit()

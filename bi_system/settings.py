@@ -156,6 +156,14 @@ DATABASES = {
         'PASSWORD': 'root123',
         'HOST': '192.168.2.98',
         'PORT': '3306',
+    },
+    'front': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'amazonfrontcrawl',
+        'USER':'lepython',
+        'PASSWORD':'qaz123456',
+        'HOST':'192.168.2.97',
+        'PORT':'3306',
     }
 }
 TASKS_DATABASE = {

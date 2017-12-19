@@ -88,8 +88,8 @@ def product_list(request):
         now = datetime.now()
         the_day_before_yesterday = now - timedelta(days=2)
         date = the_day_before_yesterday.strftime("%Y-%m-%d")
-    print(date)
-    rd_list = ReportData.objects.filter(date=date).order_by("-price")[:50]
+    # print(date)
+    rd_list = ReportData.objects.filter(date=date).exclude(weekrate=1).order_by("-price")[:50]
     rd_list = [{
                 'date':rd.date,
                 'platform':rd.platform,
@@ -249,7 +249,7 @@ def product_detail_date(request):
                 if amazon_daily:
                     data_frame.loc[(asin, date_str), '库存'] = amazon_daily.afn_fulfillable_quantity
                 else:
-                    data_frame.loc[(asin, date_str), '库存'] = 0
+                    data_frame.loc[(asin, date_str), '库存'] = ""
 
             print(zone,asin,date_str)
             business_report = AmazonBusinessReport.objects.using("sellerreport").\

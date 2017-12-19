@@ -39,8 +39,8 @@
     <div class="container-fluid" id="main" style="height:600px;" {% if not asin %}hidden{% endif %}></div>
     {% if asin %}
     <div class="container-fluid text-danger">
-        <p class="col-lg-offset-1">同比：当日销售金额与前一日销售金额之比</p>
-        <p class="col-lg-offset-1">周环比：当日销售金额与前一周同一天销售金额之比</p>
+        <p class="col-lg-offset-1">同比=(当日销售金额-昨日销售金额)/昨日销售金额</p>
+        <p class="col-lg-offset-1">周环比=(当日销售金额-上周同一天销售金额)/上周同一天销售金额</p>
         <br />
         <br />
         <br />

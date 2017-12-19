@@ -12,6 +12,7 @@
 {% endblock css %}
 
 {% block context %}
+
     <div class="container">
         <h2 class="text-center">{{ date }}单品波动排行-US</h2>
         <br />
@@ -74,6 +75,11 @@
             {% endfor %}
             </tbody>
         </table>
+            {% if not rise_top10 %}
+                <h4 class="text-danger text-center">当天销售额前50的商品中没有销量上升的商品</h4>
+                <br />
+            {% endif %}
+            <p class="text-danger">备注：以销售额前50名商品为基数，统计波动上升和波动下降</p>
     </div>
     <div class="container">
         <h3 class="text-center">波动下降TOP10</h3>
@@ -112,6 +118,11 @@
             {% endfor %}
             </tbody>
         </table>
+        {% if not drop_top10 %}
+                <h4 class="text-danger text-center">当天销售额前50的商品中没有销量下降的商品</h4>
+                <br />
+            {% endif %}
+        <p class="text-danger">备注：以销售额前50名商品为基数，统计波动上升和波动下降</p>
     </div>
     <div class="container">
         <h3 class="text-center">销售额排行TOP10</h3>

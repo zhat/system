@@ -89,27 +89,33 @@ def product_list(request):
         the_day_before_yesterday = now - timedelta(days=2)
         date = the_day_before_yesterday.strftime("%Y-%m-%d")
     # print(date)
-    rd_list = ReportData.objects.filter(date=date).exclude(weekrate=1).order_by("-price")[:50]
-    rd_list = [{
-                'date':rd.date,
-                'platform':rd.platform,
-                'station':rd.station,
-                'qty':rd.qty,
-                'count':rd.count,
-                'price':rd.price,
-                'sametermrate':round(rd.sametermrate*100,2),
-                'weekrate':round(rd.weekrate*100,2),
-                'sku':rd.sku,
-                'asin':rd.asin
-            } for rd in rd_list]
+    rd_list = ReportData.objects.filter(date=date).order_by("-price")[:50]
     price_top10 = rd_list[:10]
-    rd_list = [rd for rd in rd_list if rd['weekrate']]
-    rd_list = sorted(rd_list,key=lambda rd:rd['weekrate'])
-    rise_top10 = rd_list[-10:]
+    price_top10 = to_dict(price_top10)
+
+    rd_list = [rd for rd in rd_list if rd.weekrate != 1]
+    rd_list = sorted(rd_list,key=lambda rd:rd.weekrate)
+    rise_top10 = [rd for rd in rd_list if rd.weekrate>0][-10:]
     rise_top10.reverse()
-    drop_top10 = rd_list[:10]
+    rise_top10 = to_dict(rise_top10)
+    drop_top10 = [rd for rd in rd_list if rd.weekrate<0 and rd.weekrate>-1][:10]
+    drop_top10 = to_dict(drop_top10)
     return render(request,'report/product_list.html',{'date':date,'price_top10':price_top10,
                                                       'rise_top10':rise_top10,'drop_top10':drop_top10})
+
+def to_dict(rd_list):
+    return [{
+        'date': rd.date,
+        'platform': rd.platform,
+        'station': rd.station,
+        'qty': rd.qty,
+        'count': rd.count,
+        'price': rd.price,
+        'sametermrate': round(rd.sametermrate * 100, 2),
+        'weekrate': round(rd.weekrate * 100, 2),
+        'sku': rd.sku,
+        'asin': rd.asin
+    } for rd in rd_list]
 
 @login_required
 def product_detail(request):

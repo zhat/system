@@ -71,8 +71,8 @@ def index(request):
     sametermrate_list = [float(value) for value in data_frame['sametermrate'].values]
     max_price = (max(data_list) // 10000 + 1) * 10000
     interval = max_price // 10
-    max_rate = (max(weekrate_list + sametermrate_list) // 10 + 1) * 10
-    rate_interval = max_rate // 10
+    max_rate = (max(weekrate_list + sametermrate_list) // 100 + 1) * 100
+    rate_interval = (max_rate+100) // 10
     return render(request,'report/index.html',{'date_list':date_list,'data_list':data_list,
                                                'weekrate_list': weekrate_list, 'sametermrate_list': sametermrate_list,
                                                'max_rate': max_rate, 'rate_interval': rate_interval,
@@ -90,17 +90,6 @@ def product_list(request):
         date = the_day_before_yesterday.strftime("%Y-%m-%d")
     print(date)
     rd_list = ReportData.objects.filter(date=date).order_by("-price")[:50]
-    """<td>{{ forloop.counter }}
-                    <td>{{ product.date }}</td>
-                    <td>{{ product.platform }}</td>
-                    <td>{{ product.station }}</td>
-                    <td>{{ product.qty }}</td>
-                    <td>{{ product.count }}</td>
-                    <td>{{ product.price }}</td>
-                    <td>{{ product.sametermrate }}%</td>
-                    <td>{{ product.weekrate }}%</td>
-                    <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin """
     rd_list = [{
                 'date':rd.date,
                 'platform':rd.platform,
@@ -172,7 +161,7 @@ def product_detail(request):
     sametermrate_list = [float(value) for value in data_frame['sametermrate'].values]
     max_price = (max(data_list)//100+1)*100
     max_rate = (max(weekrate_list+sametermrate_list)//100+1)*100
-    rate_interval = max_rate//10
+    rate_interval = (max_rate+100)//10
     interval = max_price//10
 
     return render(request,'report/product.html',{'asin':asin,'date_list':date_list,'data_list':data_list,

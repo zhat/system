@@ -88,14 +88,14 @@ def get_route(date):
         seven_days_ago = rd.date-timedelta(days=7)
         yesteerday_rd = ReportData.objects.filter(date=yesteerday).filter(asin=rd.asin)
         if yesteerday_rd and yesteerday_rd[0].price:
-            rd.sametermrate = round(rd.price/yesteerday_rd[0].price,4)
+            rd.sametermrate = round((rd.price-yesteerday_rd[0].price)/yesteerday_rd[0].price,4)
         else:
-            rd.sametermrate=0
+            rd.sametermrate=1
         seven_days_ago_rd = ReportData.objects.filter(date=seven_days_ago).filter(asin=rd.asin)
         if seven_days_ago_rd and seven_days_ago_rd[0].price:
-            rd.weekrate=round(rd.price/seven_days_ago_rd[0].price,4)
+            rd.weekrate=round((rd.price-seven_days_ago_rd[0].price)/seven_days_ago_rd[0].price,4)
         else:
-            rd.weekrate=0
+            rd.weekrate=1
         rd.save()
 
 def get_sum_route(date):
@@ -112,12 +112,59 @@ def get_sum_route(date):
         seven_days_ago = sp.date - timedelta(days=7)
         yesteerday_sp = StatisticsOfPlatform.objects.filter(date=yesteerday)
         if yesteerday_sp and yesteerday_sp[0].dollar_price:
-            sp.sametermrate = round(sp.dollar_price/yesteerday_sp[0].dollar_price,4)
+            sp.sametermrate = round((sp.dollar_price-yesteerday_sp[0].dollar_price)/yesteerday_sp[0].dollar_price,4)
         else:
             sp.sametermrate = 0
         seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago)
         if seven_days_ago_sp and seven_days_ago_sp[0].dollar_price:
-            sp.weekrate = round(sp.dollar_price/seven_days_ago_sp[0].dollar_price,4)
+            sp.weekrate = round((sp.dollar_price-seven_days_ago_sp[0].dollar_price)/seven_days_ago_sp[0].dollar_price,4)
+        else:
+            sp.weekrate=0
+
+        sp.save()
+
+def get_route2():
+    """
+    计算单品同比和周环比
+    """
+    #sametermrate
+    #weekrate
+    rd_list = ReportData.objects.all()
+    for rd in rd_list:
+        yesteerday = rd.date-timedelta(days=1)
+        seven_days_ago = rd.date-timedelta(days=7)
+        yesteerday_rd = ReportData.objects.filter(date=yesteerday).filter(asin=rd.asin)
+        if yesteerday_rd and yesteerday_rd[0].price:
+            rd.sametermrate = round((rd.price-yesteerday_rd[0].price)/yesteerday_rd[0].price,4)
+        else:
+            rd.sametermrate=1
+        seven_days_ago_rd = ReportData.objects.filter(date=seven_days_ago).filter(asin=rd.asin)
+        if seven_days_ago_rd and seven_days_ago_rd[0].price:
+            rd.weekrate=round((rd.price-seven_days_ago_rd[0].price)/seven_days_ago_rd[0].price,4)
+        else:
+            rd.weekrate=1
+        rd.save()
+
+def get_sum_route2():
+    """
+    计算站点的周比和同比
+    dollar_price
+    sametermrate
+    weekrate
+    :return:
+    """
+    sp_list = StatisticsOfPlatform.objects.all()
+    for sp in sp_list:
+        yesteerday = sp.date - timedelta(days=1)
+        seven_days_ago = sp.date - timedelta(days=7)
+        yesteerday_sp = StatisticsOfPlatform.objects.filter(date=yesteerday)
+        if yesteerday_sp and yesteerday_sp[0].dollar_price:
+            sp.sametermrate = round((sp.dollar_price-yesteerday_sp[0].dollar_price)/yesteerday_sp[0].dollar_price,4)
+        else:
+            sp.sametermrate = 0
+        seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago)
+        if seven_days_ago_sp and seven_days_ago_sp[0].dollar_price:
+            sp.weekrate = round((sp.dollar_price-seven_days_ago_sp[0].dollar_price)/seven_days_ago_sp[0].dollar_price,4)
         else:
             sp.weekrate=0
 
@@ -172,7 +219,7 @@ def get_product_info_from_order():
     for order_item in order_items:
         product_info = ProductInfo.objects.filter(date=date_str,zone=order_item['parent__platform'],
                                                   asin=order_item['asin']).first()
-        if product_info:
+        if product_info or not order_item['sku']:
             continue
         ProductInfo.objects.create(date=date_str,zone=order_item['parent__platform']
                                    ,asin=order_item['asin'],sku=order_item['sku']).save()

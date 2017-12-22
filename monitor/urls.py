@@ -6,4 +6,5 @@ urlpatterns = [
     url(r'feedback_week/$',views.feedback_week,name='feedback_week'),
     url(r'review_counts/$',views.review_counts,name='review_counts'),
     url(r'review_count_with_asin/$',views.review_count_with_asin,name='review_count_with_asin'),
+    url(r'review_count_asin/$',views.review_count_asin,name='review_count_asin'),
 ]

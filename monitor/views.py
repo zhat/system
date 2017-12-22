@@ -190,6 +190,19 @@ def feedback_week(request):
         'last_week_list': last_week_list,  # 周增量数据
         'zones': zone_list})
 
+
+def review_count_asin(request):
+    date = request.GET.get("date", '').strip()
+    zone = "US"
+    if not date:
+        now = datetime.now()
+        date = now.strftime("%Y-%m-%d")
+    start = datetime.strptime(date,"%Y-%m-%d")
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    reviews = AmazonProductReviews.objects.using('front').values('asin').\
+        annotate(count=Count('id')).order_by('-count')
+    return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
+
 def review_counts(request):
     date = request.GET.get("date", '').strip()
     zone = "US"
@@ -197,11 +210,9 @@ def review_counts(request):
         now = datetime.now()
         date = now.strftime("%Y-%m-%d")
     start = datetime.strptime(date,"%Y-%m-%d")
-    end = start+timedelta(hours=23,minutes=59,seconds=59)
-    print(start,end)
     """objects.values('authors__name').annotate(Sum('price'))"""
     reviews = AmazonProductReviews.objects.using('front').values('asin').\
-        filter(create_date__range=(start, end)).annotate(count=Count('id')).order_by('-count')
+        filter(review_date=start).annotate(count=Count('id')).order_by('-count')
     return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
 
 def review_count_with_asin(request):
@@ -213,7 +224,7 @@ def review_count_with_asin(request):
     """ordering = 'CASE WHEN shop_name="NEON MART" THEN 1 ELSE 2 END'
         feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone).extra(
            select={'ordering': ordering}, order_by=('ordering','shop_name'))"""
-    date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+    date_format = r'DATE_FORMAT(review_date,"%%Y-%%m-%%d")'
     reviews = AmazonProductReviews.objects.using('front').extra(select={'date':date_format}).values('date').\
         filter(asin=asin).annotate(count=Count('id')).order_by('date')
     print(reviews.query)

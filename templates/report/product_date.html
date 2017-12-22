@@ -88,7 +88,7 @@
             <br />
             <h4 class="text-center">分析结果</h4>
             {% for result in result_list %}
-                <h4>{% if not forloop.first %}{{ forloop.counter0 }}、{% endif %}{{ result }}</h4>
+                <p>{% if not forloop.first %}{{ forloop.counter0 }}、{% endif %}{{ result }}</p>
             {% endfor %}
             <br /><br /><br />
         {% endif %}

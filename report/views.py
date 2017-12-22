@@ -194,23 +194,23 @@ def product_detail_date(request):
         asin_list.append(competitor.competitive_product_asin)   #获取竞品asin 加入asin list中
 
     date_list = [date,date-timedelta(days=1),date-timedelta(days=7)] #分别获取当天 前一天 上周同一天日期
-    product_list = []
+    columns = ['asin','platform','station','qty','count','currencycode','price','sametermrate','weekrate']
+    data_frame = pd.DataFrame(None,index = date_list ,columns=columns)
     for date in date_list:
         date_str = date.strftime("%Y-%m-%d")
         product = ReportData.objects.filter(asin=product_asin).filter(date=date_str).first()
         if product:
-            product_list.append({
-                'date': product.date.strftime('%Y-%m-%d'),
-                'asin': product.asin,
-                'platform': product.platform,
-                'station': product.station,
-                'qty': product.qty,
-                'count': product.count,
-                'currencycode': product.currencycode,
-                'price': product.price,
-                'sametermrate': '%.2f%%'%(product.sametermrate*100),
-                'weekrate': '%.2f%%'%(product.weekrate*100)
-            })
+            data_frame.loc[date, 'asin'] = product.asin
+            data_frame.loc[date, 'platform'] = product.platform
+            data_frame.loc[date, 'station'] = product.station
+            data_frame.loc[date, 'qty'] = product.qty
+            data_frame.loc[date, 'count'] = product.count
+            data_frame.loc[date, 'currencycode'] = product.currencycode
+            data_frame.loc[date, 'price'] = product.price
+            data_frame.loc[date, 'sametermrate'] = '%.2f%%'%(product.sametermrate*100)
+            data_frame.loc[date, 'weekrate'] = '%.2f%%'%(product.weekrate*100)
+    data_list = data_frame.to_csv().split('\n')
+    product_list = [data.split(',') for data in data_list if data][1:]
 
     tuples = [(asin, date.strftime("%Y-%m-%d"))
               for asin in asin_list for date in date_list]
@@ -219,8 +219,8 @@ def product_detail_date(request):
     #           'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
     columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal排名', 'deal类型']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
-    print(data_frame)
-    print(data_frame.T)
+    # print(data_frame)
+    # print(data_frame.T)
     analytic_result = []
     for asin in asin_list:
         #获取某天的价格、评分和库存
@@ -228,24 +228,25 @@ def product_detail_date(request):
             start = date
             end = start + timedelta(hours=23, minutes=59, seconds=59)
             date_str = date.strftime("%Y-%m-%d")
-            product_base = AmazonProductBaseinfo.objects.filter(asin=asin).exclude(brand_url="Unknown")
-            product_info_list = product_base.filter(create_date__range=(start, end)).order_by(
-                '-create_date')  #取当天最后一次数据
-            print(product_info_list)
+            product_info_list = AmazonProductBaseinfo.objects.using('front').\
+                filter(asin=asin).\
+                filter(create_date__range=(start, end)).\
+                exclude(brand_url="Unknown").order_by('-create_date')
+            # print(product_info_list)
             if product_info_list:
                 product_info = product_info_list[0]
                 data_frame.loc[(asin, date_str), '单价'] = product_info.lowest_price
                 data_frame.loc[(asin, date_str), '评分'] = product_info.review_avg_star
 
                 if product_info.stock_situation == "In Stock.":
-                    stock_situation = product_info.stock_situation
+                    stock_situation = "有"
                 elif product_info.stock_situation == "":
                     stock_situation = "NULL"
                 elif re.findall(r'Only 5 left in stock',product_info.stock_situation):
                     num = re.findall(r'Only (\d{1,2}) left in stock', product_info.stock_situation)
-                    stock_situation = num[0]
+                    stock_situation = "有"
                 else:
-                    stock_situation = "无库存"
+                    stock_situation = "无"
                 data_frame.loc[(asin, date_str), '库存'] = stock_situation
             if asin == product_asin:        #如果asin是公司产品asin 则取出详细库存显示
                 amazon_daily = AmazonDailyInventory.objects.using("sellerreport").\
@@ -255,9 +256,9 @@ def product_detail_date(request):
                 if amazon_daily:
                     data_frame.loc[(asin, date_str), '库存'] = amazon_daily.afn_fulfillable_quantity
                 else:
-                    data_frame.loc[(asin, date_str), '库存'] = ""
+                    data_frame.loc[(asin, date_str), '库存'] = None
 
-            print(zone,asin,date_str)
+            # print(zone,asin,date_str)
             business_report = AmazonBusinessReport.objects.using("sellerreport").\
                 filter(zone__iexact=zone.lower()).filter(child_asin=asin).filter(data_date=date_str).first()
             if business_report:
@@ -269,7 +270,9 @@ def product_detail_date(request):
                     data_frame.loc[(asin,date_str), '转化率'] = 0
                 data_frame.loc[(asin, date_str), 'buy_box'] = business_report.buy_box
 
-            today_deal = AmazonTodayDeal.objects.filter(zone__iexact=zone.lower()).filter(asin=asin).filter(date=date_str).first()
+            today_deal = AmazonTodayDeal.objects.using('front').\
+                filter(zone__iexact=zone.lower()).\
+                filter(asin=asin).filter(date=date_str).first()
             if today_deal:
                 today_deal_index = (today_deal.page-1)*48 + today_deal.page_index + 1
                 data_frame.loc[(asin, date_str), 'deal排名'] = today_deal_index
@@ -281,7 +284,200 @@ def product_detail_date(request):
     product_info_list = [data.split(',') for data in data_list if data]
     product_info_thead = product_info_list[1]
     product_info_tbody = product_info_list[2:]
+    # 分析库存 哪个天没有库存
+
+    # 以周环比分析销售变化情况，上升，下降，持平
+    has_competitor = True if len(asin_list) > 1 else False
+    weekrate = product_list[0][-1][:-1]
+    result_list = []
+    if weekrate:
+        weekrate = float(weekrate)
+        if weekrate < 0:
+            result_list = analyse(product_info_tbody,0,has_competitor)
+        elif weekrate == 0:
+            result_list.append("销量与上周相比持平")
+        else:
+            result_list = analyse(product_info_tbody, 1, has_competitor)
+    else:
+        result_list = ["当日没有销售数据"]
+
+
     return render(request,'report/product_date.html',{'asin':asin_list[0],'asin_list':asin_list,
                                                       'product_info_thead':product_info_thead,
                                                       "product_info_tbody":product_info_tbody,
-                                                      'product_list':product_list})
+                                                      'product_list':product_list,'result_list':result_list})
+
+def analyse(product_info,scope,has_competitor):
+    result_str_list = []
+    if scope:  #上升
+        result_str_list.append('销量比较上周上升')
+        # 是不是上周没有库存,如果有竞品，竞品是不是没有库存
+        stocks = product_info[2]
+        today_stock = stocks[1]
+        last_week_stock = stocks[3]
+        stock_str = []
+        if today_stock and not last_week_stock:
+            stock_str.append("上周没有库存")
+        if today_stock and has_competitor and stocks[4] == "无":
+            stock_str.append("竞品没有库存")
+        stock_str = ','.join(stock_str)
+        if stock_str:
+            result_str_list.append(stock_str)
+        # 是不是今天上了deal 上周没有上，如果有竞品，竞品是不是没有上deal
+        deal_index_list = product_info[6]
+        today_deal_index = deal_index_list[1]
+        last_week_deal_index = deal_index_list[3]
+        deal_str = []
+        if today_deal_index and not last_week_deal_index:
+            deal_str.append("今天上了deal,上周没有上deal")
+        if today_deal_index and has_competitor and not deal_index_list[4]:
+            deal_str.append("竞品没有上deal")
+        deal_str = ','.join(deal_str)
+        if deal_str:
+            result_str_list.append(deal_str)
+        # 价格与上周相比是不是下降了，如果有竞品，竞品价格是不是上涨了
+        prices = product_info[0]
+        today_price = prices[1]
+        last_week_price = prices[3]
+        price_str = []
+        if today_price and last_week_price and today_price<last_week_price:
+            price_str.append("价格与上周相比下降了")
+        if has_competitor:
+            competitor_today_price = prices[4]
+            competitor_last_week_price = prices[6]
+            if competitor_today_price and competitor_last_week_price and competitor_today_price>competitor_last_week_price:
+                price_str.append("竞品价格上升了")
+
+        price_str = ','.join(price_str)
+        if price_str:
+            result_str_list.append(price_str)
+        # 评分是不是上升了，如果有竞品，竞品评分是不是下降了
+        review_avg_score = product_info[1]
+        today_score = review_avg_score[1]
+        last_week_score = review_avg_score[3]
+        score_str = []
+        if today_score and last_week_score and today_score>last_week_score:
+            score_str.append("评分升高了")
+        if has_competitor:
+            competitor_today_score = review_avg_score[4]
+            competitor_last_week_score = review_avg_score[6]
+            if competitor_today_score and competitor_last_week_score and competitor_today_score<competitor_last_week_score:
+                score_str.append("竞品评分降低了")
+        score_str = ','.join(score_str)
+        if score_str:
+            result_str_list.append(score_str)
+        # buybox （今天-上周）/上周>5%
+        buyboxs = product_info[5]
+        today_buybox = buyboxs[1]
+        last_week_buybox = buyboxs[3]
+        buybox_str = ""
+        if today_buybox and last_week_buybox:
+            today_buybox = float(today_buybox[:-1])
+            last_week_buybox = float(last_week_buybox[:-1])
+            if last_week_buybox != 0:
+                rate = (today_buybox-last_week_buybox)/last_week_buybox
+                if rate>0.05:
+                    buybox_str = "buybox上升了%.2f%%以上"%(rate*100)
+        if buybox_str:
+            result_str_list.append(buybox_str)
+        # 转化率 （今天-上周）/上周>5%
+        conve_rates = product_info[4]
+        today_conve = conve_rates[1]
+        last_week_conve = conve_rates[3]
+        conve_str = ''
+        if today_conve and last_week_conve:
+            today_conve = float(today_conve[:-1])
+            last_week_conve = float(last_week_conve[:-1])
+            if last_week_conve != 0:
+                rate = (today_conve-last_week_conve)/last_week_conve
+                print(rate)
+                if rate>0.05:
+                    conve_str = "转化率上升了%.2f%%以上"%(rate*100)
+        if conve_str:
+            result_str_list.append(conve_str)
+    else:  #下降
+        result_str_list.append('销量比较上周下降')
+        # 是否有库存
+        stocks = product_info[2]
+        today_stock = stocks[1]
+        last_week_stock = stocks[3]
+        stock_str = ''
+        if not today_stock:
+            stock_str = "该商品当天没有库存"
+        if stock_str:
+            result_str_list.append(stock_str)
+        # 是否是因为今天没有上deal 上周上了deal 如果有竞品，竞品是否上了deal
+        deal_index_list = product_info[6]
+        today_deal_index = deal_index_list[1]
+        last_week_deal_index = deal_index_list[3]
+        deal_str = []
+        if not today_deal_index and last_week_deal_index:
+            deal_str.append("上周上了today_deal，今天没有上today_deal")
+            if not today_deal_index and has_competitor and deal_index_list[4]:
+                deal_str.append("本商品没有上deal,竞品上了deal")
+            deal_str = ','.join(deal_str)
+            if deal_str:
+                result_str_list.append(deal_str)
+        # 价格与上周相比是否加价了，如果有竞品，竞品是否降价了
+        prices = product_info[0]
+        today_price = prices[1]
+        last_week_price = prices[3]
+        price_str = []
+        if today_price and last_week_price and today_price > last_week_price:
+            price_str.append("价格与上周相比上升了")
+        if has_competitor:
+            competitor_today_price = prices[4]
+            competitor_last_week_price = prices[6]
+            if competitor_today_price and competitor_last_week_price and competitor_today_price < competitor_last_week_price:
+                price_str.append("竞品价格下降了")
+
+        price_str = ','.join(price_str)
+        if price_str:
+                result_str_list.append(price_str)
+        # 评分是否下降了，如果有竞品，竞品的评分是否上升了
+        review_avg_score = product_info[1]
+        today_score = review_avg_score[1]
+        last_week_score = review_avg_score[3]
+        score_str = []
+        if today_score and last_week_score and today_score < last_week_score:
+            score_str.append("本商品评分下降了")
+        if has_competitor:
+            competitor_today_score = review_avg_score[4]
+            competitor_last_week_score = review_avg_score[6]
+            if competitor_today_score and competitor_last_week_score and competitor_today_score > competitor_last_week_score:
+                score_str.append("竞品评分升高了")
+        score_str = ','.join(score_str)
+        if score_str:
+            result_str_list.append(score_str)
+
+        # buybox （今天-上周）/上周<-5%
+        buyboxs = product_info[5]
+        today_buybox = buyboxs[1]
+        last_week_buybox = buyboxs[3]
+        buybox_str = ""
+        if today_buybox and last_week_buybox:
+            today_buybox = float(today_buybox[:-1])
+            last_week_buybox = float(last_week_buybox[:-1])
+            if last_week_buybox != 0:
+                rate = (today_buybox - last_week_buybox) / last_week_buybox
+                if rate < -0.05:
+                    buybox_str = "buybox上升了%.2f%%以上" % abs(rate * 100)
+        if buybox_str:
+            result_str_list.append(buybox_str)
+        # 转化率 （今天-上周）/上周<-5%
+
+        conve_rates = product_info[4]
+        today_conve = conve_rates[1]
+        last_week_conve = conve_rates[3]
+        conve_str = ''
+        if today_conve and last_week_conve:
+            today_conve = float(today_conve[:-1])
+            last_week_conve = float(last_week_conve[:-1])
+            if last_week_conve != 0:
+                rate = (today_conve - last_week_conve) / last_week_conve
+                if rate < -0.05:
+                    conve_str = "转化率下降了%.2f%%以上" % abs(rate * 100)
+        if conve_str:
+            result_str_list.append(conve_str)
+
+    return result_str_list

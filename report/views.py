@@ -332,9 +332,7 @@ def analyse(product_info,scope,has_competitor):
         last_week_deal_index = deal_index_list[3]
         deal_str = []
         if today_deal_index and not last_week_deal_index:
-            deal_str.append("今天上了deal,上周没有上deal")
-        if today_deal_index and has_competitor and not deal_index_list[4]:
-            deal_str.append("竞品没有上deal")
+            deal_str.append("当天有上deal,上周没有上deal")
         deal_str = ','.join(deal_str)
         if deal_str:
             result_str_list.append(deal_str)
@@ -392,9 +390,9 @@ def analyse(product_info,scope,has_competitor):
         last_week_deal_index = deal_index_list[3]
         deal_str = []
         if not today_deal_index and last_week_deal_index:
-            deal_str.append("上周上了today_deal，今天没有上today_deal")
-            if not today_deal_index and has_competitor and deal_index_list[4]:
-                deal_str.append("本商品没有上deal，竞品上了deal")
+            deal_str.append("上周上了deal，当天没有上deal")
+        if not today_deal_index and has_competitor and deal_index_list[4]:
+            deal_str.append("本商品没有上deal，竞品上了deal")
             deal_str = ','.join(deal_str)
             if deal_str:
                 result_str_list.append(deal_str)
@@ -459,13 +457,21 @@ def compare(today,last_week,attr="",scope=True):
         if is_percent and abs(rate)<0.05:
             return ""
         if scope and change>0:   #上升
-            trend = "上升"
+            trend1 = "增加"
+            trend2 = "上升"
+            if "价格" in attr:
+                trend1 = "上调"
+                trend2 = "上调"
         elif not scope and change<0:
-            trend = "下降"
+            trend1 = "减少"
+            trend2 = "下降"
+            if "价格" in attr:
+                trend1 = "下调"
+                trend2 = "下调"
         else:
             return ""
         if is_percent:
-            return "%s%s了%.2f%%，%s%.2f%%" % (attr, trend, abs(change), trend, abs(rate*100))
+            return "%s%s了%.2f%%，%s幅度为%.2f%%" % (attr, trend1, abs(change), trend2, abs(rate*100))
         else:
-            return "%s%s了%.2f，%s%.2f%%" % (attr, trend, abs(change), trend, abs(rate*100))
+            return "%s%s了%.2f，%s幅度为%.2f%%" % (attr, trend1, abs(change), trend2, abs(rate*100))
     return ""

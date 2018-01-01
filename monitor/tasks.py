@@ -56,7 +56,7 @@ def feedback_image():
     start_monday = last_monday - timedelta(days=29*7)
     last_monday_str = last_monday.strftime("%Y-%m-%d")
     start_monday_str = start_monday.strftime("%Y-%m-%d")
-    zone="us"
+    zone="US"
     days = pd.date_range(start=start_monday_str, end=last_monday_str,freq="7D")
     dates = [date.strftime("%Y-%m-%d") for date in days]
     if now.weekday():  #今天不是星期一

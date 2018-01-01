@@ -52,7 +52,7 @@ def feedback(request):
     zone = request.GET.get("zone", '').strip()
     print(zone)
     if not zone:
-        zone = 'us'
+        zone = 'US'
     now = datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     # 站点列表
@@ -142,7 +142,7 @@ def feedback_week(request):
     zone = request.GET.get("zone", '').strip()
     print(zone)
     if not zone:
-        zone = 'us'
+        zone = 'US'
     now = datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     # 站点列表

@@ -1,12 +1,11 @@
-import time
 import os
 import xlrd
 from celery import shared_task
 from .models import StatisticsData,ReportData,StatisticsOfPlatform,ProductStock,AmazonOrderItem,ProductInfo
 from datetime import datetime,timedelta
-from .get_data import get_data
-from django.conf import settings
+from .get_data import get_data,GetStatisticsDataFromOMS
 from .read_email import get_email_excel
+from django.conf import settings
 
 def clean_data(date):
     """
@@ -39,25 +38,51 @@ def clean_data(date):
         ReportData.objects.create(date=date,sku=sku,asin=asin,platform=platform,station=station,qty=qty,currencycode=currencycode,
                                   deduction=deduction,price=price,count=count)
 
+def del_data(days=0):
+    now = datetime.now()
+    date = now - timedelta(days=days)
+    date = date.strftime("%Y-%m-%d")
+    StatisticsOfPlatform.objects.filter(date__gt=date).delete()
+    StatisticsData.objects.filter(date__gt=date).delete()
+    ReportData.objects.filter(date__gt=date).delete()
+
 @shared_task
 def clean():
     """
     清洗前天的数据，放入ReportData表中
     :return:
     """
+    #删除最近15天的数据
+    del_data(15)
     now = datetime.now()
-    days = 30
+    days = 20
+    gs = GetStatisticsDataFromOMS()
+    gs.login()
+    zone_info = [
+        ('US', 'US', 'Amazon.com'),
+        ('UK', 'DE', 'Amazon.co.uk'),
+        ('DE', 'DE', 'Amazon.de'),
+        ('JP', 'JP', 'Amazon.co.jp'),
+        ('CA', 'CA', 'Amazon.ca'),
+        ('ES', 'DE', 'Amazon.es'),
+        ('IT', 'DE', 'Amazon.it'),
+        ('FR', 'DE', 'Amazon.fr'),
+    ]
     while days > 1:
         date = now - timedelta(days=days)
         date = date.strftime("%Y-%m-%d")
-        sp_list = StatisticsOfPlatform.objects.filter(date=date)
-        if sp_list:
-            days -= 1
-            continue
-        get_data(date)
-        clean_data(date)
-        get_route(date)
-        get_sum_route(date)
+        has_date = False
+        for zone, platform, station in zone_info:
+            sp_list = StatisticsOfPlatform.objects.filter(date=date,platform=zone,station=station).all()
+            if sp_list:
+                continue
+            has_date = True
+            print(date,zone,platform,station)
+            gs.get_data(date=date,zone=zone,platform=platform,station=station)
+        if has_date:
+            clean_data(date)
+            get_route(date)
+            get_sum_route(date)
         days -= 1
     return True
 
@@ -86,12 +111,14 @@ def get_route(date):
     for rd in rd_list:
         yesteerday = rd.date-timedelta(days=1)
         seven_days_ago = rd.date-timedelta(days=7)
-        yesteerday_rd = ReportData.objects.filter(date=yesteerday).filter(asin=rd.asin)
+        yesteerday_rd = ReportData.objects.filter(date=yesteerday).filter(asin=rd.asin).\
+            filter(platform=rd.platform).filter(station=rd.station)
         if yesteerday_rd and yesteerday_rd[0].price:
             rd.sametermrate = round((rd.price-yesteerday_rd[0].price)/yesteerday_rd[0].price,4)
         else:
             rd.sametermrate=1
-        seven_days_ago_rd = ReportData.objects.filter(date=seven_days_ago).filter(asin=rd.asin)
+        seven_days_ago_rd = ReportData.objects.filter(date=seven_days_ago).filter(asin=rd.asin).\
+            filter(platform=rd.platform).filter(station=rd.station)
         if seven_days_ago_rd and seven_days_ago_rd[0].price:
             rd.weekrate=round((rd.price-seven_days_ago_rd[0].price)/seven_days_ago_rd[0].price,4)
         else:
@@ -110,12 +137,14 @@ def get_sum_route(date):
     for sp in sp_list:
         yesteerday = sp.date - timedelta(days=1)
         seven_days_ago = sp.date - timedelta(days=7)
-        yesteerday_sp = StatisticsOfPlatform.objects.filter(date=yesteerday)
+        yesteerday_sp = StatisticsOfPlatform.objects.filter(date=yesteerday).\
+            filter(platform=sp.platform).filter(station=sp.station)
         if yesteerday_sp and yesteerday_sp[0].dollar_price:
             sp.sametermrate = round((sp.dollar_price-yesteerday_sp[0].dollar_price)/yesteerday_sp[0].dollar_price,4)
         else:
             sp.sametermrate = 0
-        seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago)
+        seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago).\
+            filter(platform=sp.platform).filter(station=sp.station)
         if seven_days_ago_sp and seven_days_ago_sp[0].dollar_price:
             sp.weekrate = round((sp.dollar_price-seven_days_ago_sp[0].dollar_price)/seven_days_ago_sp[0].dollar_price,4)
         else:

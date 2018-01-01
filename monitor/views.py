@@ -213,6 +213,7 @@ def review_counts(request):
     """objects.values('authors__name').annotate(Sum('price'))"""
     reviews = AmazonProductReviews.objects.using('front').values('asin').\
         filter(review_date=start).annotate(count=Count('id')).order_by('-count')
+    print(reviews)
     return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
 
 def review_count_with_asin(request):
@@ -229,3 +230,7 @@ def review_count_with_asin(request):
         filter(asin=asin).annotate(count=Count('id')).order_by('date')
     print(reviews.query)
     return render(request,"monitor/review_count_with_asin.html",{"zone":zone,"asin":asin,"reviews":reviews})
+
+def review_detail(request):
+    asin = "B005FEGYJC"
+    AmazonProductReviews.objects.using('front').filter(asin=asin).filter()

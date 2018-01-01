@@ -6,25 +6,15 @@ from urllib.parse import urlunparse,urlparse,urlencode
 import urllib.error
 import time
 import json
-import pymysql
 from datetime import datetime,timedelta
 import pytesseract
 from PIL import Image
 from django.conf import settings
+from .models import StatisticsData,ReportData,StatisticsOfPlatform,ProductStock,AmazonOrderItem,ProductInfo
 #from shibie import GetImageDate
 
 #USER_DATA_DIR = settings.CHROME_USER_DATA_DIR
 BASE_URL = "http://192.168.2.99:9080/ocs/index"
-DATABASE = settings.TASKS_DATABASE
-#DATABASE = {
-#            'host':"192.168.2.97",
-#            'database':"bi_system_dev",
-#            'user':"lepython",
-#            'password':"qaz123456",
-#            'port':3306,
-#            'charset':'utf8'
-#}
-
 
 def img_to_str(image_path):
     image = Image.open(image_path)
@@ -35,27 +25,38 @@ class GetStatisticsDataFromOMS():
     """
     从OMS系统上抓取每天统计信息
     """
-    def __init__(self,date):
-        self.dbconn = pymysql.connect(**DATABASE)
-        self.date=date
-    def get_data(self,driver):
+    def __init__(self):
+        self.driver = webdriver.PhantomJS()
+    def __del__(self):
+        self.driver.quit()
+    def get_data_all(self,date):
+        zone_info = [
+        ('US','US','Amazon.com'),
+        ('UK','DE','Amazon.co.uk'),
+        ('DE','DE','Amazon.de'),
+        ('JP','JP','Amazon.co.jp'),
+        ('CA','CA','Amazon.ca'),
+        ('ES','DE','Amazon.es'),
+        ('IT','DE','Amazon.it'),
+        ('FR','DE','Amazon.fr'),
+        ]
+        for zone,platform,station in zone_info:
+            self.get_data(date=date,zone=zone,platform=platform,station=station)
+    def get_data(self,date,zone = "US",platform = "US",station = "Amazon.com"):
         """
         :param driver: webdriver.Chrome
         :return:email or ""
         """
-        if not isinstance(driver,webdriver.PhantomJS):
+        if not isinstance(self.driver,webdriver.PhantomJS):
             raise TypeError
         #time.sleep(5)
-        cookie = driver.get_cookies()
+        cookie = self.driver.get_cookies()
         cookie = [item["name"] + "=" + item["value"] for item in cookie]
         cookiestr = ';'.join(item for item in cookie)
-        print(cookiestr)
-        current_url = driver.current_url
+        current_url = self.driver.current_url
         url_parse = urlparse(current_url)
         host = url_parse.netloc
         origin = urlunparse(url_parse[:2]+('',)*4)
-        print(host)
-        print(origin)
         page = 1
         short_url = urlunparse(url_parse[:3] + ('',) * 3)
 
@@ -70,27 +71,21 @@ class GetStatisticsDataFromOMS():
                 'Origin':origin,
                 'X-Requested-With':'XMLHttpRequest',
                }
-
-        sql_insert = []
+        querysetlist = []
         while True:
             values = {'param[source]': 'amazon',
                       'param[sku]': '',
-                      'param[platform]': 'US',
+                      'param[platform]': platform,
                       'param[status]': '',
                       'param[whichTime]': 'purchaseat',
-                      'param[starttime]': self.date,
-                      'param[endtime]': self.date,
+                      'param[starttime]': date,
+                      'param[endtime]': date,
                       'param[timeQuantum]': 0,
                       'param[asin]': '',
-                      'param[station]': 'Amazon.com',
+                      'param[station]': station,
                       'page': page,
                       'rows': 50}
-            # values=json.dumps(values)
-            #print(values)
             data = urlencode(values).encode()
-            # data=b'param%5Bsource%5D=amazon&param%5Bsku%5D=&param%5Bplatform%5D=&param%5Bstatus%5D=&param%5BwhichTime%5D=purchaseat&param%5Bstarttime%5D=&param%5Bendtime%5D=&param%5BtimeQuantum%5D=-30&param%5Basin%5D=&param%5Bstation%5D=&page=1&rows=50'
-
-            #print(data)
             req = urllib.request.Request(target_url, data=data, headers=headers)
             try:
                 result = urllib.request.urlopen(req).read()
@@ -108,134 +103,140 @@ class GetStatisticsDataFromOMS():
             print(self.source)
             now = datetime.now()
             for row in rows:
-                # print(row['sku'], row['asin'], row['platform'], row['station'], row['qty'], row['currencycode'],
-                #   row['deduction'],
-                #   row['price'], row['count'], row['sametermrate'], row['weekrate'], row['monthrate'], row['status'])
-                insert_url = r'INSERT INTO report_statisticsdata (`date`,sku,asin,platform,station,qty,currencycode,' \
-                     r'deduction,price,`count`,sametermrate,weekrate,monthrate,status,create_date,update_date)' \
-                     r' VALUES("%s","%s","%s","%s","%s",%d,"%s",%f,%f,%d,%f,%f,%f,"%s","%s","%s");'%(self.date,
-                row['sku'],row['asin'],row['platform'],row['station'],row['qty'],row['currencycode'],row['deduction'],
-                row['price'],row['count'],row['sametermrate'],row['weekrate'],row['monthrate'],row['status'],now,now)
-                #print(insert_url)
-                sql_insert.append(insert_url)
+                data_dict = {'date': date,
+                 'sku': row['sku'],
+                 'asin': row['asin'],
+                 'platform': zone,
+                 'station': row['station'],
+                 'qty': row['qty'],
+                 'currencycode': row['currencycode'],
+                 'deduction': row['deduction'],
+                 'price': row['price'],
+                 'count': row['count'],
+                 'sametermrate': row['sametermrate'],
+                 'weekrate': row['weekrate'],
+                 'monthrate': row['monthrate'],
+                 'status': row['status'],
+                 'create_date': now,
+                 'update_date': now
+                 }
+                querysetlist.append(StatisticsData(**data_dict))
             if self.total<page*50:
-                # print(self.date,count_data['currencycode'],count_data['deduction'],count_data['taxrate'],
-                #       float(count_data['weekrate']),float(count_data['monthrate']),float(count_data['status']),
-                #       float(count_data['sametermrate'][:-1]),float(count_data['price'][:-1]),
-                #       float(count_data['count'][:-1]))
-                print(count_data)
                 try:
-                    insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
-                                 r'site_price,dollar_price,RMB_price,create_date,update_date) ' \
-                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f,"%s","%s");' % (self.date,
-                                                                         count_data['currencycode'],
-                                                                         count_data['deduction'],
-                                                                         count_data['taxrate'],
-                                                                         float(count_data['weekrate']),
-                                                                         float(count_data['monthrate']),
-                                                                         float(count_data['status']),now,now
-                                                                         )
+                    zone_data = {'date':date,'platform':zone,'station':count_data['currencycode'],'qty':count_data['deduction'],
+                     'count':count_data['taxrate'],'site_price':float(count_data['weekrate']),
+                     'dollar_price':float(count_data['monthrate']),'RMB_price':float(count_data['status']),
+                     'create_date':now,'update_date':now}
                 except Exception as e:
-                    print(e)
-                    insert_url = r'INSERT INTO report_statisticsofplatform (`date`,station,qty,`count`,' \
-                                 r'site_price,dollar_price,RMB_price,create_date,update_date) ' \
-                                 r'VALUES("%s","%s",%d,%d,%f,%f,%f,"%s","%s");' % (self.date,
-                                                                         count_data['deduction'], count_data['taxrate'],
-                                                                         count_data['price'],
-                                                                         float(count_data['weekrate']),
-                                                                         float(count_data['monthrate']),
-                                                                         float(count_data['status']),now,now
-                                                                         )
-                #print(insert_url)
-                sql_insert.append(insert_url)
+                    zone_data = {'date':date,'platform':zone,'station':count_data['deduction'],
+                     'qty':count_data['taxrate'],'count':count_data['price'],
+                     'site_price':float(count_data['weekrate']),'dollar_price':float(count_data['monthrate']),
+                     'RMB_price':float(count_data['status']),'create_date':now,'update_date':now}
+                StatisticsOfPlatform.objects.create(**zone_data)
                 break
             else:
                 page+=1
-        cur = self.dbconn.cursor()
+        StatisticsData.objects.bulk_create(querysetlist)
 
-        for sqlcmd in sql_insert:
-                #print(sqlcmd)
-            cur.execute(sqlcmd)
-        print(datetime.now())
-        self.dbconn.commit()
-        cur.close()
         return result
 
-    def clean_data(self):
-        cur = self.dbconn.cursor()
-        sqlcmd = r'INSERT INTO report_asininfo(`date`,`asin`,`platform`,station,sku,create_date,update_date) SELECT DISTINCT ' \
-                 r'`date`,`asin`,`platform`,station,sku,create_date,update_date FROM report_statisticsdata WHERE date="%s";'%self.date
-
-        cur.execute(sqlcmd)
-        #print(sqlcmd)
-        self.dbconn.commit()
-        #except Exception as e:
-        #    print(e)
-        #finally:
-        cur.close()
-    def login(self,driver):
+    def login(self):
         try:
-            driver.maximize_window()
+            self.driver.maximize_window()
         except Exception as err:
             print(err)
         frequency = 0
+        self.driver.get(BASE_URL)
         while True:
             base_path = settings.IMAGE_PATH
             time_str=int(time.time()*10000000)
             image_path = os.path.join(base_path,"base{}.png".format(time_str))
             image_path_png = os.path.join(base_path,"{}.png".format(time_str))
-            driver.get_screenshot_as_file(image_path)  # 比较好理解
+            self.driver.get_screenshot_as_file(image_path)  # 比较好理解
             im = Image.open(image_path)
             #box = (1022, 360, 1097, 380)  # 设置要裁剪的区域
             box = (745,356,821,380)
             region = im.crop(box)
             region.save(image_path_png)
-            username = driver.find_element_by_id("username")
-            password = driver.find_element_by_id("password")
+            username = self.driver.find_element_by_id("username")
+            password = self.driver.find_element_by_id("password")
             username.clear()
             username.send_keys(settings.LE_USERNAME)
             #username.send_keys("yaoxuzhao")
             password.clear()
             password.send_keys(settings.LE_PASSWORD)
             #password.send_keys("123")
-            val_code = driver.find_element_by_id("valCode")
+            val_code = self.driver.find_element_by_id("valCode")
             val_code.clear()
             img_code = img_to_str(image_path_png)
             if not img_code:
                 img_code = "abcd"
             val_code.send_keys(img_code)
             time.sleep(3)
-            driver.find_element_by_xpath("//input[@type='submit']").click()
+            self.driver.find_element_by_xpath("//input[@type='submit']").click()
             time.sleep(5)
-            if driver.find_elements_by_class_name("header_img"):
+            if self.driver.find_elements_by_class_name("header_img"):
                 break
             frequency+=1
             if frequency>10:
                 raise TimeoutError
 
+    def get_route(self,date):
+        """
+        计算单品同比和周环比
+        """
+        # sametermrate
+        # weekrate
+        rd_list = ReportData.objects.filter(date=date)
+        for rd in rd_list:
+            yesteerday = rd.date - timedelta(days=1)
+            seven_days_ago = rd.date - timedelta(days=7)
+            yesteerday_rd = ReportData.objects.filter(date=yesteerday).filter(asin=rd.asin)
+            if yesteerday_rd and yesteerday_rd[0].price:
+                rd.sametermrate = round((rd.price - yesteerday_rd[0].price) / yesteerday_rd[0].price, 4)
+            else:
+                rd.sametermrate = 1
+            seven_days_ago_rd = ReportData.objects.filter(date=seven_days_ago).filter(asin=rd.asin)
+            if seven_days_ago_rd and seven_days_ago_rd[0].price:
+                rd.weekrate = round((rd.price - seven_days_ago_rd[0].price) / seven_days_ago_rd[0].price, 4)
+            else:
+                rd.weekrate = 1
+            rd.save()
+
+    def get_sum_route(self,date):
+        """
+        计算站点的周比和同比
+        dollar_price
+        sametermrate
+        weekrate
+        :return:
+        """
+        sp_list = StatisticsOfPlatform.objects.filter(date=date)
+        for sp in sp_list:
+            yesteerday = sp.date - timedelta(days=1)
+            seven_days_ago = sp.date - timedelta(days=7)
+            yesteerday_sp = StatisticsOfPlatform.objects.filter(date=yesteerday)
+            if yesteerday_sp and yesteerday_sp[0].dollar_price:
+                sp.sametermrate = round(
+                    (sp.dollar_price - yesteerday_sp[0].dollar_price) / yesteerday_sp[0].dollar_price, 4)
+            else:
+                sp.sametermrate = 0
+            seven_days_ago_sp = StatisticsOfPlatform.objects.filter(date=seven_days_ago)
+            if seven_days_ago_sp and seven_days_ago_sp[0].dollar_price:
+                sp.weekrate = round(
+                    (sp.dollar_price - seven_days_ago_sp[0].dollar_price) / seven_days_ago_sp[0].dollar_price, 4)
+            else:
+                sp.weekrate = 0
+
+            sp.save()
+
 def get_data(date):
-    try:
-        # chrome_options = webdriver.ChromeOptions()
-        # chrome_options.add_experimental_option('prefs', {
-        #     'credentials_enable_service': True,
-        #     'profile': {
-        #         'password_manager_enabled': True
-        #     }
-        # })
-        # # 读取本地信息
-        # chrome_options.add_argument("--user-data-dir=" + USER_DATA_DIR)
-        # driver = webdriver.Chrome(chrome_options=chrome_options)
-        driver = webdriver.PhantomJS()
-        driver.get(BASE_URL)
-        time.sleep(6)
-        now = datetime.now()
-        gs = GetStatisticsDataFromOMS(date)
-        gs.login(driver)
-        result = gs.get_data(driver)
-        #gs.clean_data()
-        #time.sleep(1000)
-    finally:
-        driver.quit()
+
+    time.sleep(6)
+    gs = GetStatisticsDataFromOMS()
+    gs.login()
+    print("Login Success")
+    gs.get_data_all(date)
 
 if __name__=="__main__":
     now = datetime.now()

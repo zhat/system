@@ -293,12 +293,12 @@ def product_detail_date(request):
     if weekrate:
         weekrate = float(weekrate[:-1])
         if weekrate < 0:
-            result_list.append("销量比较上周下降了%.2f%%"%(abs(weekrate)))
+            result_list.append("销量比较上周下降了{:.2f}%".format(abs(weekrate)))
             result_list += analyse(product_info_tbody,0,has_competitor)
         elif weekrate == 0:
             result_list.append("销量与上周相比持平")
         else:
-            result_list.append("销量比较上周上升了%.2f%%" % (abs(weekrate)))
+            result_list.append("销量比较上周上升了{:.2f}%".format(abs(weekrate)))
             result_list += analyse(product_info_tbody, 1, has_competitor)
     else:
         result_list = ["当日没有销售数据"]
@@ -471,7 +471,7 @@ def compare(today,last_week,attr="",scope=True):
         else:
             return ""
         if is_percent:
-            return "%s%s了%.2f%%，%s幅度为%.2f%%" % (attr, trend1, abs(change), trend2, abs(rate*100))
+            return "{}{}了{:.2f}%，{}幅度为{:.2%}".format(attr, trend1, abs(change), trend2, abs(rate))
         else:
-            return "%s%s了%.2f，%s幅度为%.2f%%" % (attr, trend1, abs(change), trend2, abs(rate*100))
+            return "{}{}了{:.2f}，{}幅度为{:.2%}".format(attr, trend1, abs(change), trend2, abs(rate))
     return ""

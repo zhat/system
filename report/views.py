@@ -24,8 +24,12 @@ def index(request):
        没有结束时间
            显示最近一个月数据 今天前2天到今天前39天
     """
+    zone = request.GET.get('zone','').strip()
+    if not zone:
+        zone = "US"
     start = request.GET.get('start', '').strip()
     end = request.GET.get('end', '').strip()
+    zone_list = ["US","DE","CA","JP","UK","ES","FR","IT"]
     if start:           #有开始时间
         start_date = datetime.strptime(start, '%Y-%m-%d')
         start = start_date - timedelta(days=7)
@@ -56,7 +60,7 @@ def index(request):
     days = pd.date_range(start=start, end=end)
     data_frame = pd.DataFrame(0, index=days, columns=['dollar_price', 'weekrate', 'sametermrate'])
 
-    so=StatisticsOfPlatform.objects.filter(date__range=(start,end))
+    so=StatisticsOfPlatform.objects.filter(date__range=(start,end)).filter(platform=zone)
     for product in so:
         if product.dollar_price:
             data_frame.loc[product.date.strftime("%Y-%m-%d"), 'dollar_price'] = round(float(product.dollar_price), 2)
@@ -73,7 +77,7 @@ def index(request):
     interval = max_price // 10
     max_rate = (max(weekrate_list + sametermrate_list) // 100 + 1) * 100
     rate_interval = (max_rate+100) // 10
-    return render(request,'report/index.html',{'date_list':date_list,'data_list':data_list,
+    return render(request,'report/index.html',{'date_list':date_list,'data_list':data_list,'zone_list':zone_list,'zone':zone,
                                                'weekrate_list': weekrate_list, 'sametermrate_list': sametermrate_list,
                                                'max_rate': max_rate, 'rate_interval': rate_interval,
                                                'max_price': max_price, 'interval': interval})
@@ -84,12 +88,14 @@ def date_test(request):
 @login_required
 def product_list(request):
     date = request.GET.get('date', '').strip()
+    zone = request.GET.get('zone', 'US').strip()
+    zone_list = ["US","DE","CA","JP","UK","ES","FR","IT"]
     if not date:
         now = datetime.now()
         the_day_before_yesterday = now - timedelta(days=2)
         date = the_day_before_yesterday.strftime("%Y-%m-%d")
     # print(date)
-    rd_list = ReportData.objects.filter(date=date).order_by("-price")[:50]
+    rd_list = ReportData.objects.filter(date=date,platform=zone).order_by("-price")[:50]
     price_top10 = rd_list[:10]
     price_top10 = to_dict(price_top10)
 
@@ -100,7 +106,8 @@ def product_list(request):
     rise_top10 = to_dict(rise_top10)
     drop_top10 = [rd for rd in rd_list if rd.weekrate<0 and rd.weekrate>-1][:10]
     drop_top10 = to_dict(drop_top10)
-    return render(request,'report/product_list.html',{'date':date,'price_top10':price_top10,
+    return render(request,'report/product_list.html',{'date':date,'price_top10':price_top10,'zone':zone,
+                                                      'zone_list':zone_list,
                                                       'rise_top10':rise_top10,'drop_top10':drop_top10})
 
 def to_dict(rd_list):
@@ -119,9 +126,11 @@ def to_dict(rd_list):
 
 @login_required
 def product_detail(request):
+    zone = request.GET.get('zone','US').strip()
     asin = request.GET.get('asin', '').strip()
     start = request.GET.get('start', '').strip()
     end = request.GET.get('end','').strip()
+    zone_list = ["US", "DE", "CA", "JP", "UK", "ES", "FR", "IT"]
     #if asin=="":
     #    raise Http404
     if start:           #有开始时间
@@ -153,7 +162,7 @@ def product_detail(request):
     days=pd.date_range(start=start,end=end)
     data_frame = pd.DataFrame(0,index=days,columns=['price','weekrate','sametermrate'])
     if asin:
-        product_list = ReportData.objects.filter(asin=asin).filter(date__range=(start,end)).order_by("-date")
+        product_list = ReportData.objects.filter(asin=asin,platform=zone).filter(date__range=(start,end)).order_by("-date")
         if not product_list:
             raise Http404
         for product in product_list:
@@ -171,22 +180,25 @@ def product_detail(request):
     interval = max_price//10
 
     return render(request,'report/product.html',{'asin':asin,'date_list':date_list,'data_list':data_list,
+                                                 'zone':zone,'zone_list':zone_list,
                                                  'weekrate_list':weekrate_list,'sametermrate_list':sametermrate_list,
                                                  'max_rate':max_rate,'rate_interval':rate_interval,
                                                  'max_price':max_price,'interval':interval})
 
 @login_required
 def product_detail_date(request):
-    zone = "US"
+    zone = request.GET.get('zone','US').strip()
+    zone_list = ["US", "DE", "CA", "JP", "UK", "ES", "FR", "IT"]
     product_asin = request.GET.get('asin', '').strip()
     date_str = request.GET.get('date', '').strip()
+    if not zone:
+        zone = "US"
     #if not asin or not date:
     #    raise Http404
     if not date_str:                            #如果没有输入日期 就默认显示现在日期前两天的数据
         now = datetime.now()
-        date = now - timedelta(days=2)
-    else:
-        date = datetime.strptime(date_str, '%Y-%m-%d')
+        date_str = (now - timedelta(days=2)).strftime('%Y-%m-%d')
+    date = datetime.strptime(date_str, '%Y-%m-%d')
 
     asin_list = [product_asin]
     competitor = CompetitiveProduct.objects.filter(zone__iexact=zone,asin=product_asin).first()  #filter(zone__iexact=zone)
@@ -198,7 +210,7 @@ def product_detail_date(request):
     data_frame = pd.DataFrame(None,index = date_list ,columns=columns)
     for date in date_list:
         date_str = date.strftime("%Y-%m-%d")
-        product = ReportData.objects.filter(asin=product_asin).filter(date=date_str).first()
+        product = ReportData.objects.filter(asin=product_asin,platform=zone).filter(date=date_str).first()
         if product:
             data_frame.loc[date, 'asin'] = product.asin
             data_frame.loc[date, 'platform'] = product.platform
@@ -229,7 +241,7 @@ def product_detail_date(request):
             end = start + timedelta(hours=23, minutes=59, seconds=59)
             date_str = date.strftime("%Y-%m-%d")
             product_info_list = AmazonProductBaseinfo.objects.using('front').\
-                filter(asin=asin).\
+                filter(asin=asin,zone__iexact=zone.lower()).\
                 filter(create_date__range=(start, end)).\
                 exclude(brand_url="Unknown").order_by('-create_date')
             # print(product_info_list)
@@ -250,7 +262,7 @@ def product_detail_date(request):
                 data_frame.loc[(asin, date_str), '库存'] = stock_situation
             if asin == product_asin:        #如果asin是公司产品asin 则取出详细库存显示
                 amazon_daily = AmazonDailyInventory.objects.using("sellerreport").\
-                    filter(zone__iexact=zone.lower()).\
+                    filter(sub_zone__iexact=zone.lower()).\
                     filter(data_date=date_str).\
                     filter(asin=asin).first()
                 if amazon_daily:
@@ -305,6 +317,7 @@ def product_detail_date(request):
 
 
     return render(request,'report/product_date.html',{'asin':asin_list[0],'asin_list':asin_list,
+                                                      'zone':zone,'zone_list':zone_list,
                                                       'product_info_thead':product_info_thead,
                                                       "product_info_tbody":product_info_tbody,
                                                       'product_list':product_list,'result_list':result_list})

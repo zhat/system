@@ -82,7 +82,7 @@ def feedback_image():
     x = range(len(dates))
     # 创建绘图对象，figsize参数可以指定绘图对象的宽度和高度，单位为英寸，一英寸=80px
 
-    #print(data_frame)
+    # print(data_frame)
     plt.figure(figsize=(24,12))
     plt.xticks(x, dates, rotation=60)
     for shop_name in shop_name_list:

@@ -6,11 +6,20 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-    <h2 class="text-center">站点统计-US</h2>
+    <h2 class="text-center">站点统计-{{ zone }}</h2>
     <br />
     <form class="form-horizontal"  action="{% url 'report:index' %}" method="GET">
     <div class="row">
         <div class="form-group">
+            <label for="zone" class="col-md-1 control-label">站点</label>
+            <div class="col-md-3">
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        {% for zone in zone_list %}
+                        <option>{{ zone }}</option>
+                        {% endfor %}
+                    </select>
+            </div>
 {#            <label for="asin" class="col-md-1 control-label">asin</label>#}
 {#            <div class="col-md-3">#}
 {#                {% if profile %}#}
@@ -165,15 +174,26 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+        function GetQueryString(name)
+        {
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)return  unescape(r[2]); return null;
+        }
         myChart.on('mousedown', function (params) {
+            var zone = GetQueryString("zone");
+            if (zone==null){
+                zone = "US"
+            }
             console.log(params);
             var value = params.name;
             if (value!=""){
                     var date = value.split('/').join('-');
-                   window.location="{% url 'report:product_list' %}"+"?date="+date;
+                   window.location="{% url 'report:product_list' %}"+"?zone="+zone+"&date="+date;
                }
         });
         $('#li_station').attr('class','active');
+        $('#zone').val("{{ zone }}");
     </script>
     <script type="text/javascript">
 $('#qBeginTime').datetimepicker({
@@ -216,7 +236,7 @@ $('#qEndTime').datetimepicker({
         return y+"-"+m+"-"+d;
     }
     function doQuery(form) {
-        document.myform.submit();
+        form.submit();
     };
     </script>
 {% endblock js %}

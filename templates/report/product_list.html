@@ -14,11 +14,20 @@
 {% block context %}
 
     <div class="container">
-        <h2 class="text-center">{{ date }}单品波动排行-US</h2>
+        <h2 class="text-center">{{ date }}单品波动排行-{{ zone }}</h2>
         <br />
         <form class="form-horizontal"  action="{% url 'report:product_list' %}" method="GET">
         <div class="row">
             <div class="form-group">
+                <label for="zone" class="col-md-1 control-label">站点</label>
+                <div class="col-md-3">
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        {% for zone in zone_list %}
+                        <option>{{ zone }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 {#            <label for="asin" class="col-md-1 control-label">asin</label>#}
 {#            <div class="col-md-3">#}
 {#                {% if profile %}#}
@@ -27,7 +36,7 @@
 {#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />#}
 {#                {% endif %}#}
 {#            </div>#}
-                <label for="date" class="col-md-5 control-label">日期</label>
+                <label for="date" class="col-md-1 control-label">日期</label>
                 <div class="col-md-3">
                     <div class="input-daterange input-group" id="datepicker">
                         <input type="text" class="form-control" name="date" id="qBeginTime" data-date-format="yyyy-mm-dd" />
@@ -70,7 +79,7 @@
                     <td>{{ product.sametermrate }}%</td>
                     <td>{{ product.weekrate }}%</td>
                     <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin }}</a></td>
+                    <td><a href="{% url 'report:product_detail' %}?zone={{ zone }}&asin={{ product.asin }}">{{ product.asin }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -113,7 +122,7 @@
                     <td>{{ product.sametermrate }}%</td>
                     <td>{{ product.weekrate }}%</td>
                     <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin }}</a></td>
+                    <td><a href="{% url 'report:product_detail' %}?zone={{ zone }}&asin={{ product.asin }}">{{ product.asin }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -156,7 +165,7 @@
                     <td>{{ product.sametermrate }}%</td>
                     <td>{{ product.weekrate }}%</td>
                     <td>{{ product.sku }}</td>
-                    <td><a href="{% url 'report:product_detail' %}?asin={{ product.asin }}">{{ product.asin }}</a></td>
+                    <td><a href="{% url 'report:product_detail' %}?zone={{ zone }}&asin={{ product.asin }}">{{ product.asin }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -169,6 +178,8 @@
     <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
     <script>
     $('#li_product_list').attr('class','active');
+    $('#zone').val("{{ zone }}");
+    $('#asin').val("{{ asin }}");
     $('#qBeginTime').datetimepicker({
     language:  'zh-CN',
         weekStart: 1,
@@ -179,9 +190,28 @@
 		minView: 2,
 		forceParse: 0,
         endDate:GetDateStr(-2),
-        initialDate:GetDateStr(-2)
+        initialDate:GetDateStr2(-2)
 });
+    $('#qBeginTime').val(GetDateStr2(-2));
     function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    };
+    function GetQueryString(name)
+        {
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)return  unescape(r[2]); return null;
+        }
+    function GetDateStr2(AddDayCount) {
+        var date = GetQueryString("date");
+        if (date!=null){
+            return date;
+        }
         var dd = new Date();
         dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
         var y = dd.getFullYear();
@@ -190,7 +220,7 @@
         return y+"-"+m+"-"+d;
     }
     function doQuery(form) {
-        document.myform.submit();
+        form.submit();
     };
     </script>
 {% endblock js %}

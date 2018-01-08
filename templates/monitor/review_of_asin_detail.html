@@ -42,23 +42,60 @@
         <table class="table table-bordered  table-striped">
             <thead>
             <tr>
-                <th>排序</th>
-                <th>日期</th>
                 <th>zone</th>
                 <th>asin</th>
-                <th>count</th>
+                <th>总数</th>
+                <th>5</th>
+                <th>4</th>
+                <th>3</th>
+                <th>2</th>
+                <th>1</th>
             </tr>
             </thead>
             <tbody>
-            {% for review in reviews %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ review.date }}</td>
-                    <td>{{ zone }}</td>
-                    <td>{{ asin }}</td>
-                    <td>{{ review.count }}</td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td>{{ zone }}</td>
+                <td>{{ reviews.asin }}</td>
+                <td>{{ reviews.count_all }}</td>
+                <td>{{ reviews.count5 }}</td>
+                <td>{{ reviews.count4 }}</td>
+                <td>{{ reviews.count3 }}</td>
+                <td>{{ reviews.count2 }}</td>
+                <td>{{ reviews.count1 }}</td>
+            </tr>
+
+            </tbody>
+        </table>
+    <br /><br />
+    <table class="table table-bordered  table-striped">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>zone</th>
+                <th>asin</th>
+                <th>标题</th>
+                <th>评论内容</th>
+                <th>用户</th>
+                <th>评级</th>
+                <th>评论时间</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for review in review_detail %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ review.zone }}</td>
+                        <td>{{ review.asin }}</td>
+                        <td><a href="{{ review.review_url }}" target="_blank">{{ review.review_title }}</a></td>
+                        <td>{{ review.review_text }}</td>
+                        <td><a href="{{ review.reviewer_url }}" target="_blank">{{ review.reviewer_name }}</a></td>
+                        <td>{{ review.review_star }}</td>
+                        <td>{{ review.review_date }}</td>
+                    </tr>
+                {% endfor %}
+
+            </tr>
+
             </tbody>
         </table>
     </div>

@@ -135,7 +135,7 @@ def feedback(request):
                                                      'max_value_of_months': max_value_of_months,  # 月增量最大值
                                                      'interval_of_months': interval_of_months,  # 月增量间隔
                                                      'last_month_list': last_month_list,  # 月增量数据
-                                                     'zones': zone_list})
+                                                     'zones': zone_list,'zone':zone})
 
 
 def feedback_week(request):
@@ -191,17 +191,12 @@ def feedback_week(request):
         'zones': zone_list})
 
 
-def review_count_asin(request):
-    date = request.GET.get("date", '').strip()
+def review_add_day(request):
+    date = request.GET.get("date","").strip()
     zone = "US"
     if not date:
         now = datetime.now()
-        date = now.strftime("%Y-%m-%d")
-    start = datetime.strptime(date,"%Y-%m-%d")
-    """objects.values('authors__name').annotate(Sum('price'))"""
-    reviews = AmazonProductReviews.objects.using('front').values('asin').\
-        annotate(count=Count('id')).order_by('-count')
-    return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
+        date = (now-timedelta(days=1)).strftime("%Y-%m-%d")
 
 def review_counts(request):
     date = request.GET.get("date", '').strip()
@@ -214,7 +209,7 @@ def review_counts(request):
     reviews = AmazonProductReviews.objects.using('front').values('asin').\
         filter(review_date=start).annotate(count=Count('id')).order_by('-count')
     print(reviews)
-    return render(request,"monitor/review_counts.html",{"zone":zone,"date":date,"reviews":reviews})
+    return render(request, "monitor/review_of_asin.html", {"zone":zone, "date":date, "reviews":reviews})
 
 def review_count_with_asin(request):
     asin = request.GET.get("asin", '').strip()
@@ -229,8 +224,88 @@ def review_count_with_asin(request):
     reviews = AmazonProductReviews.objects.using('front').extra(select={'date':date_format}).values('date').\
         filter(asin=asin).annotate(count=Count('id')).order_by('date')
     print(reviews.query)
-    return render(request,"monitor/review_count_with_asin.html",{"zone":zone,"asin":asin,"reviews":reviews})
+    return render(request, "monitor/review_of_asin_detail.html", {"zone":zone, "asin":asin, "reviews":reviews})
 
 def review_detail(request):
     asin = "B005FEGYJC"
     AmazonProductReviews.objects.using('front').filter(asin=asin).filter()
+
+
+def review_of_zone(request):
+    date = request.GET.get("date", '').strip()
+    if not date:
+        now = datetime.now()
+        date = now.strftime("%Y-%m-%d")
+    start = datetime.strptime(date, "%Y-%m-%d")
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    reviews = AmazonProductReviews.objects.using('front').values('zone').\
+        annotate(count=Count('id')).order_by('-count')
+    # print(reviews)
+    return render(request, "monitor/review_of_zone.html", {"reviews": reviews})
+
+def review_of_asin(request):
+    date = request.GET.get("date", '').strip()
+    zone = request.GET.get("zone","US").strip()
+    if not zone:
+        zone = "US"
+    if not date:
+        now = datetime.now()
+        date = (now-timedelta(days=1)).strftime("%Y-%m-%d")
+    start = datetime.strptime(date,"%Y-%m-%d")
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    reviews = AmazonProductReviews.objects.using('front').values('asin').filter(zone=zone).\
+        annotate(count=Count('id')).order_by('-count')
+    return render(request,"monitor/review_of_asin.html",{"zone":zone,"date":date,"reviews":reviews})
+
+def review_of_asin_detail(request):
+    zone = request.GET.get("zone","US").strip()
+    asin = request.GET.get("asin", '').strip()
+    if not zone:
+        zone = "US"
+    """objects.values('authors__name').annotate(Sum('price'))"""
+    reviews = AmazonProductReviews.objects.using('front').values('review_star').filter(zone=zone).filter(asin=asin). \
+        annotate(count=Count('id')).order_by('-review_star')
+    count1 = 0
+    count2 = 0
+    count3 = 0
+    count4 = 0
+    count5 = 0
+    for review in reviews:
+        if review["review_star"] == "5.0":
+            count5 = review['count']
+        elif review["review_star"] == "4.0":
+            count4 = review['count']
+        elif review["review_star"] == "3.0":
+            count3 = review['count']
+        elif review["review_star"] == "2.0":
+            count2 = review['count']
+        elif review["review_star"] == "1.0":
+            count1 = review['count']
+    count_all = AmazonProductReviews.objects.using('front').values('id').filter(zone=zone).filter(asin=asin).count()
+    print(reviews)
+    count = count1+count2+count3+count4+count5
+    print(count,count_all)
+    reviews = {
+        'asin': asin,
+        'count_all': count_all,
+        'count1': count1,
+        'count2': count2,
+        'count3': count3,
+        'count4': count4,
+        'count5': count5,
+    }
+    review_detail = AmazonProductReviews.objects.using('front').filter(zone=zone,asin=asin).\
+        filter(review_star__lte="3.0").filter(review_date__gte="2017-12-01").\
+        order_by("-review_date")
+    review_detail = [{
+        'zone': review.zone,
+        'asin': review.asin,
+        'review_url': "https://www.amazon.com" + review.review_url,
+        'review_title': review.review_title,
+        'review_text': review.review_text,
+        'reviewer_name': review.reviewer_name,
+        'reviewer_url': "https://www.amazon.com" + review.reviewer_url,
+        'review_date':review.review_date,
+        'review_star': review.review_star} for review in review_detail]
+    return render(request, "monitor/review_of_asin_detail.html", {"zone": zone, "reviews": reviews,
+                                                                  "review_detail":review_detail})

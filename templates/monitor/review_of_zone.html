@@ -13,7 +13,7 @@
 
 {% block context %}
     <div class="container">
-        <h2 class="text-center">Review统计排行 {{ date }}</h2>
+        <h2 class="text-center">Review站点统计</h2>
         <br />
         <form class="form-horizontal"  action="{% url 'monitor:review_counts' %}" method="GET">
         <div class="row">
@@ -44,7 +44,6 @@
             <tr>
                 <th>排序</th>
                 <th>zone</th>
-                <th>asin</th>
                 <th>count</th>
             </tr>
             </thead>
@@ -52,8 +51,7 @@
             {% for review in reviews %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ zone }}</td>
-                    <td><a href="{% url 'monitor:review_count_with_asin' %}?asin={{ review.asin }}">{{ review.asin }}</a></td>
+                    <td><a href="{% url 'monitor:review_of_asin' %}?zone={{ review.zone }}">{{ review.zone }}</a></td>
                     <td>{{ review.count }}</td>
                 </tr>
             {% endfor %}

@@ -6,13 +6,22 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-    <h2 class="text-center">单品统计</h2>
+    <h2 class="text-center">{{ zone }}单品统计-{{ asin }}</h2>
     <br />
     <form class="form-horizontal"  action="{% url 'report:product_detail' %}" method="GET">
     <div class="row">
         <div class="form-group">
+            <label for="zone" class="col-md-1 control-label">站点</label>
+            <div class="col-md-2">
+                <select class="form-control" id="zone" name="zone">
+                    <option></option>
+                    {% for zone in zone_list %}
+                        <option>{{ zone }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <label for="asin" class="col-md-1 control-label">asin</label>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 {% if profile %}
                     <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />
                 {% else %}
@@ -20,14 +29,14 @@
                 {% endif %}
             </div>
             <label for="date" class="col-md-1 control-label">时间</label>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="input-daterange input-group" id="datepicker">
                     <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
                     <span class="input-group-addon">至</span>
                     <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
             </div>
         </div>
@@ -221,15 +230,24 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+        function GetQueryString(name)
+        {
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if(r!=null)return  unescape(r[2]); return null;
+        }
         myChart.on('mousedown', function (params) {
-            console.log(params);
             var value = params.name;
             if (value!=""){
+                    var zone = GetQueryString("zone");
                     var date = value.split('/').join('-');
-                   window.location="{% url 'report:product_detail_date' %}"+"?asin="+GetQueryString("asin")+"&date="+date;
+                   window.location="{% url 'report:product_detail_date' %}"+"?zone=" + zone + "&asin="+GetQueryString("asin")+"&date="+date;
                }
         });
+
         $('#li_product_detail').attr('class','active');
+        $('#zone').val("{{ zone }}");
+        $('#asin').val("{{ asin }}");
 {#        function mousedown(params)#}
 {#        {#}
 {#            if(params.length>0){#}

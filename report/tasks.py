@@ -55,7 +55,7 @@ def clean():
     #删除最近15天的数据
     del_data(15)
     now = datetime.now()
-    days = 20
+    days = 30
     gs = GetStatisticsDataFromOMS()
     gs.login()
     zone_info = [

@@ -15,11 +15,11 @@ def clean_data(date):
     for asin_info in asin_info_list:
         if asin_info['asin']=="None":
             continue
-        sd_list = StatisticsData.objects.filter(date=date).filter(asin=asin_info['asin']).all()
-        sku=asin_info['sku']
-        asin=asin_info['asin']
+        sku = asin_info['sku']
+        asin = asin_info['asin']
         platform = asin_info['platform']
         station = asin_info['station']
+        sd_list = StatisticsData.objects.filter(date=date,platform=platform,station=station).filter(asin=asin).all()
         qty= 0
         deduction= 0.0
         price = 0.0
@@ -252,5 +252,4 @@ def get_product_info_from_order():
             continue
         ProductInfo.objects.create(date=date_str,zone=order_item['parent__platform']
                                    ,asin=order_item['asin'],sku=order_item['sku']).save()
-
     print(datetime.now())

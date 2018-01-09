@@ -59,7 +59,7 @@ class GetStatisticsDataFromOMS():
         origin = urlunparse(url_parse[:2]+('',)*4)
         page = 1
         short_url = urlunparse(url_parse[:3] + ('',) * 3)
-
+        currencycode = self.get_currencycode(zone)
         #target_url = "http://192.168.2.99:9080/ocs/salesStatistics/findAll"
         target_url = "http://192.168.2.99:9080/ocs/orderQuery/findAll"
         user_agent = r'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
@@ -107,9 +107,9 @@ class GetStatisticsDataFromOMS():
                  'sku': row['sku'],
                  'asin': row['asin'],
                  'platform': zone,
-                 'station': row['station'],
+                 'station': station,
                  'qty': row['qty'],
-                 'currencycode': row['currencycode'],
+                 'currencycode': currencycode,
                  'deduction': row['deduction'],
                  'price': row['price'],
                  'count': row['count'],
@@ -123,12 +123,12 @@ class GetStatisticsDataFromOMS():
                 querysetlist.append(StatisticsData(**data_dict))
             if self.total<page*50:
                 try:
-                    zone_data = {'date':date,'platform':zone,'station':count_data['currencycode'],'qty':count_data['deduction'],
+                    zone_data = {'date':date,'platform':zone,'station':station,'qty':count_data['deduction'],
                      'count':count_data['taxrate'],'site_price':float(count_data['weekrate']),
                      'dollar_price':float(count_data['monthrate']),'RMB_price':float(count_data['status']),
                      'create_date':now,'update_date':now}
                 except Exception as e:
-                    zone_data = {'date':date,'platform':zone,'station':count_data['deduction'],
+                    zone_data = {'date':date,'platform':zone,'station':station,
                      'qty':count_data['taxrate'],'count':count_data['price'],
                      'site_price':float(count_data['weekrate']),'dollar_price':float(count_data['monthrate']),
                      'RMB_price':float(count_data['status']),'create_date':now,'update_date':now}
@@ -180,7 +180,18 @@ class GetStatisticsDataFromOMS():
             frequency+=1
             if frequency>10:
                 raise TimeoutError
-
+    def get_currencycode(self,zone):
+        code_dict = {
+            'US': 'USD',
+            'UK': 'GBP',
+            'DE': 'EUR',
+            'JP': 'JPY',
+            'CA': 'CAD',
+            'ES': 'EUR',
+            'IT': 'EUR',
+            'FR': 'EUR',
+        }
+        return code_dict.get(zone,"USD")
     def get_route(self,date):
         """
         计算单品同比和周环比

@@ -220,8 +220,8 @@ def review_count_with_asin(request):
     """ordering = 'CASE WHEN shop_name="NEON MART" THEN 1 ELSE 2 END'
         feedback_count_list = FeedbackInfo.objects.filter(date=now_str).filter(zone=zone).extra(
            select={'ordering': ordering}, order_by=('ordering','shop_name'))"""
-    date_format = r'DATE_FORMAT(review_date,"%%Y-%%m-%%d")'
-    reviews = AmazonProductReviews.objects.using('front').extra(select={'date':date_format}).values('date').\
+    date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+    reviews = AmazonRefShopList.objects.using('front').extra(select={'date':date_format}).values('date').\
         filter(asin=asin).annotate(count=Count('id')).order_by('date')
     print(reviews.query)
     return render(request, "monitor/review_of_asin_detail.html", {"zone":zone, "asin":asin, "reviews":reviews})

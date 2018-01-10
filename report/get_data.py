@@ -124,11 +124,11 @@ class GetStatisticsDataFromOMS():
             if self.total<page*50:
                 try:
                     zone_data = {'date':date,'platform':zone,'station':station,'qty':count_data['deduction'],
-                     'count':count_data['taxrate'],'site_price':float(count_data['weekrate']),
+                                 'currencycode':currencycode,'count':count_data['taxrate'],'site_price':float(count_data['weekrate']),
                      'dollar_price':float(count_data['monthrate']),'RMB_price':float(count_data['status']),
                      'create_date':now,'update_date':now}
                 except Exception as e:
-                    zone_data = {'date':date,'platform':zone,'station':station,
+                    zone_data = {'date':date,'platform':zone,'station':station,'currencycode':currencycode,
                      'qty':count_data['taxrate'],'count':count_data['price'],
                      'site_price':float(count_data['weekrate']),'dollar_price':float(count_data['monthrate']),
                      'RMB_price':float(count_data['status']),'create_date':now,'update_date':now}
@@ -191,6 +191,7 @@ class GetStatisticsDataFromOMS():
             'IT': 'EUR',
             'FR': 'EUR',
         }
+        print(code_dict.get(zone,"USD"))
         return code_dict.get(zone,"USD")
     def get_route(self,date):
         """

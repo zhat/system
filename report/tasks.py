@@ -53,9 +53,9 @@ def clean():
     :return:
     """
     #删除最近15天的数据
-    del_data(15)
+    del_data(5)
     now = datetime.now()
-    days = 30
+    days = 10
     gs = GetStatisticsDataFromOMS()
     gs.login()
     zone_info = [
@@ -252,4 +252,18 @@ def get_product_info_from_order():
             continue
         ProductInfo.objects.create(date=date_str,zone=order_item['parent__platform']
                                    ,asin=order_item['asin'],sku=order_item['sku']).save()
+
+    order_items = ReportData.objects.values('asin', 'sku', 'platform').filter(date__gt=last_month_str).all().distinct()
+    # print(order_items)
+    # print(len(order_items))
+    print(order_items)
+    print(len(order_items))
+    date_str = date.strftime("%Y-%m-%d")
+    for order_item in order_items:
+        product_info = ProductInfo.objects.filter(date=date_str, zone=order_item['platform'],
+                                                  asin=order_item['asin']).first()
+        if product_info or not order_item['sku']:
+            continue
+        ProductInfo.objects.create(date=date_str, zone=order_item['platform']
+                                   , asin=order_item['asin'], sku=order_item['sku']).save()
     print(datetime.now())

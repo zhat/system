@@ -150,6 +150,20 @@ class AmazonProductBaseinfo(models.Model):
         db_table = 'amazon_product_baseinfo'
 
 
+class AmazonProductCategorySalesRank(models.Model):
+    zone = models.CharField(max_length=8, blank=True, null=True)
+    asin = models.CharField(max_length=20, blank=True, null=True)
+    ref_id = models.CharField(max_length=20, blank=True, null=True)
+    category_name = models.CharField(max_length=255, blank=True, null=True)
+    sales_rank = models.IntegerField(blank=True, null=True)
+    create_date = models.DateTimeField()
+    update_date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'amazon_product_category_sales_rank'
+
+
 class AmazonProductReviews(models.Model):
     zone = models.CharField(max_length=8, blank=True, null=True)
     asin = models.CharField(max_length=20, blank=True, null=True)

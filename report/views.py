@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import Http404
-from .models import StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,CompetitiveProduct,AmazonBusinessReport,AmazonTodayDeal,AmazonDailyInventory
+from .models import StatisticsOfPlatform,ReportData,AmazonProductBaseinfo,CompetitiveProduct,AmazonDailyInventory
+from .models import AmazonProductCategorySalesRank,AmazonBusinessReport,AmazonTodayDeal
 from django.contrib.auth.decorators import login_required
 from datetime import datetime,timedelta
 import pandas as pd
@@ -229,7 +230,7 @@ def product_detail_date(request):
     index = pd.MultiIndex.from_tuples(tuples, names=['asin', '日期'])
     #columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
     #           'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
-    columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal排名', 'deal类型']
+    columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal排名', 'deal类型','销售排名类名名称','销售排名']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
     # print(data_frame)
     # print(data_frame.T)
@@ -290,7 +291,15 @@ def product_detail_date(request):
                 data_frame.loc[(asin, date_str), 'deal排名'] = today_deal_index
                 data_frame.loc[(asin, date_str), 'deal类型'] = today_deal.deal_type
 
-                #排名 类型
+            #排名 类型
+            date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+            acsr = AmazonProductCategorySalesRank.objects.using('front'). \
+                extra(select={'date': date_format}, where={'{}="{}"'.format(date_format, date_str)}). \
+                filter(zone=zone.lower()).filter(asin=asin, category_name__contains="(See Top 100"). \
+                order_by('sales_rank').first()
+            if acsr:
+                data_frame.loc[(asin, date_str), '销售排名类名名称'] = acsr.category_name.replace("(See Top 100","")
+                data_frame.loc[(asin, date_str), '销售排名'] = acsr.sales_rank
 
     data_list = data_frame.T.to_csv().split('\n')
     product_info_list = [data.split(',') for data in data_list if data]
@@ -488,3 +497,15 @@ def compare(today,last_week,attr="",scope=True):
         else:
             return "{}{}了{:.2f}，{}幅度为{:.2%}".format(attr, trend1, abs(change), trend2, abs(rate))
     return ""
+
+def demo():
+    zone = "US"
+    asin = "B06Y2TSKRV"
+    date = "2017-11-11"
+    date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+    acsr = AmazonProductCategorySalesRank.objects.using('front').\
+        extra(select={'date': date_format},where={'{}="{}"'.format(date_format,date)}). \
+        filter(zone=zone.lower()).filter(asin=asin,category_name__contains="(See Top 100").\
+        order_by('sales_rank').first()
+    print(acsr)
+    print(acsr.category_name,acsr.sales_rank)

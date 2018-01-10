@@ -53,9 +53,9 @@ def clean():
     :return:
     """
     #删除最近15天的数据
-    del_data(5)
+    del_data(15)
     now = datetime.now()
-    days = 10
+    days = 30
     gs = GetStatisticsDataFromOMS()
     gs.login()
     zone_info = [

@@ -469,13 +469,12 @@ def compare(today,last_week,attr="",scope=True):
         is_percent = False      #是否含有"%"
         if "%" == today[-1]:
             is_percent = True
-            today = float(today[:-1])
+            today = today[:-1]
         if "%" == last_week[-1]:
             is_percent = True
-            last_week = float(last_week[:-1])
-        else:
-            today = float(today)
-            last_week = float(last_week)
+            last_week = last_week[:-1]
+        today = float(today)
+        last_week = float(last_week)
         if last_week == 0:      #上周为0 不能进行除法运算
             return ""
         change = today - last_week

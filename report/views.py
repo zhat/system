@@ -5,6 +5,7 @@ from .models import AmazonProductCategorySalesRank,AmazonBusinessReport,AmazonTo
 from django.contrib.auth.decorators import login_required
 from datetime import datetime,timedelta
 import pandas as pd
+from django.db.models import Q
 import re
 # Create your views here.
 
@@ -202,7 +203,7 @@ def product_detail_date(request):
     date = datetime.strptime(date_str, '%Y-%m-%d')
 
     asin_list = [product_asin]
-    competitor = CompetitiveProduct.objects.filter(zone__iexact=zone,asin=product_asin).first()  #filter(zone__iexact=zone)
+    competitor = CompetitiveProduct.objects.filter(Q(zone=zone)|Q(zone=zone.lower())).filter(asin=product_asin).first()  #filter(zone__iexact=zone)
     if competitor and competitor.competitive_product_asin:
         asin_list.append(competitor.competitive_product_asin)   #获取竞品asin 加入asin list中
 
@@ -242,9 +243,10 @@ def product_detail_date(request):
             end = start + timedelta(hours=23, minutes=59, seconds=59)
             date_str = date.strftime("%Y-%m-%d")
             product_info_list = AmazonProductBaseinfo.objects.using('front').\
-                filter(asin=asin,zone__iexact=zone.lower()).\
+                filter(asin=asin).filter(Q(zone=zone)|Q(zone=zone.lower())).\
                 filter(create_date__range=(start, end)).\
-                exclude(brand_url="Unknown").order_by('-create_date')
+                exclude(in_sale_price=0).order_by('-create_date')
+            # print(product_info_list.query)
             # print(product_info_list)
             if product_info_list:
                 product_info = product_info_list[0]
@@ -263,7 +265,7 @@ def product_detail_date(request):
                 data_frame.loc[(asin, date_str), '库存'] = stock_situation
             if asin == product_asin:        #如果asin是公司产品asin 则取出详细库存显示
                 amazon_daily = AmazonDailyInventory.objects.using("sellerreport").\
-                    filter(sub_zone__iexact=zone.lower()).\
+                    filter(Q(sub_zone=zone)|Q(sub_zone=zone.lower())).\
                     filter(data_date=date_str).\
                     filter(asin=asin).first()
                 if amazon_daily:
@@ -272,8 +274,8 @@ def product_detail_date(request):
                     data_frame.loc[(asin, date_str), '库存'] = None
 
             # print(zone,asin,date_str)
-            business_report = AmazonBusinessReport.objects.using("sellerreport").\
-                filter(zone__iexact=zone.lower()).filter(child_asin=asin).filter(data_date=date_str).first()
+            business_report = AmazonBusinessReport.objects.using("sellerreport"). \
+                filter(Q(zone=zone) | Q(zone=zone.lower())).filter(child_asin=asin).filter(data_date=date_str).first()
             if business_report:
                 data_frame.loc[(asin, date_str), '流量'] = business_report.sessions
                 if business_report.sessions:
@@ -283,8 +285,8 @@ def product_detail_date(request):
                     data_frame.loc[(asin,date_str), '转化率'] = 0
                 data_frame.loc[(asin, date_str), 'buy_box'] = business_report.buy_box
 
-            today_deal = AmazonTodayDeal.objects.using('front').\
-                filter(zone__iexact=zone.lower()).\
+            today_deal = AmazonTodayDeal.objects.using('front'). \
+                filter(Q(zone=zone) | Q(zone=zone.lower())).\
                 filter(asin=asin).filter(date=date_str).first()
             if today_deal:
                 today_deal_index = (today_deal.page-1)*48 + today_deal.page_index + 1
@@ -295,7 +297,7 @@ def product_detail_date(request):
             date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
             acsr = AmazonProductCategorySalesRank.objects.using('front'). \
                 extra(select={'date': date_format}, where={'{}="{}"'.format(date_format, date_str)}). \
-                filter(zone=zone.lower()).filter(asin=asin, category_name__contains="(See Top 100"). \
+                filter(Q(zone=zone) | Q(zone=zone.lower())).filter(asin=asin, category_name__contains="(See Top 100"). \
                 order_by('sales_rank').first()
             if acsr:
                 data_frame.loc[(asin, date_str), '销售排名类名名称'] = acsr.category_name.replace("(See Top 100","")
@@ -463,10 +465,13 @@ def analyse(product_info,scope,has_competitor):
 
 def compare(today,last_week,attr="",scope=True):
     if today and last_week:
+        # print(today,last_week)
         is_percent = False      #是否含有"%"
         if "%" == today[-1]:
             is_percent = True
             today = float(today[:-1])
+        if "%" == last_week[-1]:
+            is_percent = True
             last_week = float(last_week[:-1])
         else:
             today = float(today)
@@ -475,7 +480,7 @@ def compare(today,last_week,attr="",scope=True):
             return ""
         change = today - last_week
         rate = change/last_week
-        print(attr,change,rate,today,last_week)
+        # print(attr,change,rate,today,last_week)
         if is_percent and abs(rate)<0.05:
             return ""
         if scope and change>0:   #上升
@@ -498,14 +503,106 @@ def compare(today,last_week,attr="",scope=True):
             return "{}{}了{:.2f}，{}幅度为{:.2%}".format(attr, trend1, abs(change), trend2, abs(rate))
     return ""
 
-def demo():
-    zone = "US"
-    asin = "B06Y2TSKRV"
-    date = "2017-11-11"
-    date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
-    acsr = AmazonProductCategorySalesRank.objects.using('front').\
-        extra(select={'date': date_format},where={'{}="{}"'.format(date_format,date)}). \
-        filter(zone=zone.lower()).filter(asin=asin,category_name__contains="(See Top 100").\
-        order_by('sales_rank').first()
-    print(acsr)
-    print(acsr.category_name,acsr.sales_rank)
+def get_data(request):
+    zone = request.GET.get('zone', 'US').strip()
+    zone_list = ["US", "DE", "CA", "JP", "UK", "ES", "FR", "IT"]
+    asin = request.GET.get('asin', '').strip()
+    date_str = request.GET.get('date', '').strip()
+    column = request.GET.get('column', '').strip()
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+    end = date_str
+    start = (datetime.strptime(end,"%Y-%m-%d")-timedelta(days=30)).strftime("%Y-%m-%d")
+    data_frame = get_data_with_column(zone,asin,start,end,column)
+    date_list = [date.strftime("%Y-%m-%d") for date in pd.date_range(start=start,end=end)]
+    column_data = [float(value) for value in data_frame[column].values]
+    max_value = (int(max(column_data)/10)+3)*10
+    interval = max_value/5
+    if column == "review_avg_star":
+        max_value = 5
+        interval = 1
+    column_dict = {
+        "in_sale_price":"单价",
+        "review_avg_star":"评分",
+        "stock":"库存",
+        "sessions":"流量",
+        "conversion_rate":"转化率",
+        "buy_box":"buy_box",
+        "today_deal_index":"deal排名",
+        "sale_index":"销售排名"
+    }
+    column_name = column_dict.get(column,"")
+    return render(request,"report/data.html",{"max_value":max_value,'interval':interval,
+                                              'zone':zone,'asin':asin,'column':column_name,
+                                              "date_list":date_list,"data_list":column_data})
+
+def get_data_with_column(zone,asin,start,end,column):
+    # columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
+    #           'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
+    date_list = pd.date_range(start=start, end=end)
+    # print(date_list)
+    data_frame = pd.DataFrame(0, index=date_list, columns=[column])
+    if column == "in_sale_price":  #单价
+        date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+        product_info_list = AmazonProductBaseinfo.objects.using('front').\
+            extra(select={'date':date_format},where={'{} between "{}" and "{}"'.format(date_format,start,end)}).\
+            values('in_sale_price','date'). \
+            filter(asin=asin).filter(Q(zone=zone) | Q(zone=zone.lower())). \
+            exclude(in_sale_price=0).distinct()
+        for product_info in product_info_list:
+            data_frame.loc[(product_info['date']), column] = product_info['in_sale_price']
+    elif column == "review_avg_star": #评分
+        date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+        product_info_list = AmazonProductBaseinfo.objects.using('front'). \
+            extra(select={'date': date_format}, where={'{} between "{}" and "{}"'.format(date_format, start, end)}). \
+            values('review_avg_star', 'date'). \
+            filter(asin=asin).filter(Q(zone=zone) | Q(zone=zone.lower())). \
+            exclude(in_sale_price=0).distinct()
+        for product_info in product_info_list:
+            data_frame.loc[(product_info['date']), column] = product_info['review_avg_star']
+    elif column == "stock": #库存
+        amazon_daily_list = AmazonDailyInventory.objects.using("sellerreport").values('afn_fulfillable_quantity','data_date'). \
+            filter(Q(sub_zone=zone) | Q(sub_zone=zone.lower())). \
+            filter(data_date__range=(start,end)). \
+            filter(asin=asin).order_by('afn_fulfillable_quantity')
+        for amazon_daily in amazon_daily_list:
+            data_frame.loc[(amazon_daily['data_date']), column] = amazon_daily['afn_fulfillable_quantity']
+    elif column == "sessions": #流量
+        business_report_list = AmazonBusinessReport.objects.using("sellerreport").values('sessions','data_date'). \
+            filter(Q(zone=zone) | Q(zone=zone.lower())).filter(child_asin=asin).filter(data_date__range=(start,end))
+        for business_report in business_report_list:
+            data_frame.loc[business_report['data_date'], column] = business_report['sessions']
+
+    elif column == "conversion_rate":   #转化率
+        business_report_list = AmazonBusinessReport.objects.using("sellerreport").\
+            values('total_order_items', 'sessions', 'data_date'). \
+            filter(Q(zone=zone) | Q(zone=zone.lower())).filter(child_asin=asin).filter(data_date__range=(start, end))
+        for business_report in business_report_list:
+            if business_report['sessions']!=0:
+                data_frame.loc[business_report['data_date'], column] = round((business_report['total_order_items'] / business_report['sessions']) * 100, 2)
+    elif column == "buy_box":
+        business_report_list = AmazonBusinessReport.objects.using("sellerreport").values('buy_box', 'data_date'). \
+            filter(Q(zone=zone) | Q(zone=zone.lower())).filter(child_asin=asin).filter(data_date__range=(start, end))
+        for business_report in business_report_list:
+            data_frame.loc[business_report['data_date'], column] = business_report['buy_box'][:-1]
+
+    elif column == "today_deal_index":  #deal排名
+        today_deal_list = AmazonTodayDeal.objects.using('front').values('date','page','page_index'). \
+            filter(Q(zone=zone) | Q(zone=zone.lower())). \
+            filter(asin=asin).filter(date__range=(start,end)).order_by('-page','-page_index')
+        for today_deal in today_deal_list:
+            today_deal_index = (today_deal.page - 1) * 48 + today_deal.page_index + 1
+            data_frame.loc[today_deal['date'], column] = today_deal_index
+
+    elif column == "sale_index":    #销售排名
+        date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
+        acsr_list = AmazonProductCategorySalesRank.objects.using('front'). \
+            extra(select={'date': date_format}, where={'{} between "{}" and "{}"'.format(date_format, start, end)}).\
+            values('date','sales_rank'). \
+            filter(Q(zone=zone) | Q(zone=zone.lower())).\
+            filter(asin=asin, category_name__contains="(See Top 100"). \
+            order_by('-sales_rank')
+        for acsr in acsr_list:
+            data_frame.loc[acsr['date'], column] = acsr['sales_rank']
+
+    return  data_frame

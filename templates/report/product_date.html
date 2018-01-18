@@ -8,7 +8,7 @@
     <div class="container">
         <h2 class="text-center">单品信息</h2>
         <br />
-        <form class="form-horizontal"  action="" method="GET">
+        <form class="form-horizontal"  action="{% url 'report:product_detail_date' %}" method="GET">
         <div class="row">
             <div class="form-group">
                 <label for="zone" class="col-md-1 control-label">站点</label>
@@ -88,7 +88,11 @@
             {% for product_list in product_info_tbody %}
                 <tr>
                     {% for value in product_list %}
-                        <td>{{ value }}</td>
+                        {% if forloop.first and value != "deal类型" and value != "销售排名类名名称" %}
+                            <td class="text-center"><a href="javascript:void(0)" onclick="get_data('{{ value }}')">{{ value }}</a></td>
+                        {% else %}
+                            <td>{{ value }}</td>
+                        {% endif %}
                     {% endfor %}
                 </tr>
             {% endfor %}
@@ -152,5 +156,40 @@
     function doQuery(form) {
         document.myform.submit();
     };
+    function get_data(column) {
+        var zone = "{{ zone }}";
+        var asin = "{{ asin }}";
+        //columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
+        //       'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
+        switch(column){
+            case "单价":
+                column = "in_sale_price";
+                break;
+            case "评分":
+                column = "review_avg_star";
+                break;
+            case "库存":
+                column = "stock";
+                break;
+            case "流量":
+                column = "sessions";
+                break;
+            case "转化率":
+                column = "conversion_rate";
+                break;
+            case "buy_box":
+                column = "buy_box";
+                break;
+            case "deal排名":
+                column = "today_deal_index";
+                break;
+            case "销售排名":
+                column = "sale_index";
+                break;
+            default:
+                return 0;
+        }
+        window.open("{% url 'report:get_data' %}"+"?zone=" + zone + "&asin="+asin+"&column="+column);
+    }
     </script>
 {% endblock js %}

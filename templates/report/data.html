@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}单品统计{% endblock title %}
+{% block css %}
+    <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+{% endblock css %}
+{% block context %}
+    <div class="container">
+    <h2 class="text-center">{{ zone }}站点{{ asin }}产品{{ column }}最近趋势</h2>
+    </div>
+    <br />
+    <br />
+    <div class="container-fluid" id="main" style="height:600px;"></div>
+    <div class="container-fluid text-danger">
+        <br />
+        <br />
+    </div>
+{% endblock context %}
+{% block js %}
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <script type="text/javascript">
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        //myChart.title = '折柱混合';
+        option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    crossStyle: {
+                        color: '#999'
+                    }
+                },
+                formatter: function (params) {
+                    var html = '';
+                    if (params.length > 0) {
+                        Xvalue = params[0].axisValue;
+                        //console.log(Xvalue);
+                        //console.log(params);
+                        for (var int = 0; int < params.length; int++) {
+                            html += params[int].seriesName + ':' + params[int].data + '<br>';
+                        }
+                    }
+                    return html;
+                }
+            },
+            label: {
+                normal: {
+                    show: false,
+                    position: 'inside'
+                }
+            },
+            toolbox: {
+                feature: {
+                    magicType: {show: true, type: ['line', 'bar']},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    //data: ['08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11','08/28','08/29','08/30', '08/31','09/01', '09/02','09/03',
+                    //'09/04','09/05','09/06','09/07','09/08','09/09','09/10','09/11'],
+                    data:{{  date_list|safe }},
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: "{{ column }}",
+                    min: 0,
+                    max: {{ max_value }},
+                    interval: {{ interval }},
+                    axisLabel: {}
+                }
+            ],
+            series: [
+                {
+                    name: "{{ column }}",
+                    type: 'line',
+                    data:{{ data_list }},
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                position: 'top',
+                                textStyle: {
+                                    color: '#615a5a'
+                                }
+                                }
+                            }
+                        }
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+    </script>
+{% endblock js %}

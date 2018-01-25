@@ -6,7 +6,26 @@
 {% endblock css %}
 {% block context %}
     <div class="container">
-    <h2 class="text-center">{{ zone }}站点{{ asin }}产品{{ column }}最近趋势</h2>
+    <h2 class="text-center">{{ zone }}站点{{ asin }}产品{{ column_name }}最近趋势</h2>
+    <br /><br />
+    <form class="form-horizontal"  action="{% url 'report:get_data' %}" method="GET">
+    <input type="hidden" class="form-control" name="zone" id="zone" value="{{ zone }}" />
+    <input type="hidden" class="form-control" name="asin" id="asin" value="{{ asin }}" />
+    <input type="hidden" class="form-control" name="column" id="column" value="{{ column }}"/>
+    <div class="row">
+        <label for="date" class="col-md-offset-2 col-md-1 control-label">时间</label>
+        <div class="col-md-5">
+            <div class="input-daterange input-group" id="datepicker">
+                <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+                <span class="input-group-addon">至</span>
+                <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+        </div>
+    </div>
+    </form>
     </div>
     <br />
     <br />
@@ -76,7 +95,7 @@
             yAxis: [
                 {
                     type: 'value',
-                    name: "{{ column }}",
+                    name: "{{ column_name }}",
                     min: 0,
                     max: {{ max_value }},
                     interval: {{ interval }},
@@ -85,7 +104,7 @@
             ],
             series: [
                 {
-                    name: "{{ column }}",
+                    name: "{{ column_name }}",
                     type: 'line',
                     data:{{ data_list }},
                     itemStyle: {
@@ -105,5 +124,44 @@
 
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
+        $('#qBeginTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+}).on('changeDate',function(e){
+    var startTime = e.date;
+    $('#qEndTime').datetimepicker('setStartDate',startTime);
+});
+//结束时间：
+$('#qEndTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+    }).on('changeDate',function(e){
+    var endTime = e.date;
+    $('#qBeginTime').datetimepicker('setEndDate',endTime);
+    });
+    function GetDateStr(AddDayCount) {
+        var dd = new Date();
+        dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期
+        var y = dd.getFullYear();
+        var m = dd.getMonth()+1;//获取当前月份的日期
+        var d = dd.getDate();
+        return y+"-"+m+"-"+d;
+    }
     </script>
 {% endblock js %}

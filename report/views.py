@@ -208,6 +208,7 @@ def product_detail_date(request):
         asin_list.append(competitor.competitive_product_asin)   #获取竞品asin 加入asin list中
 
     date_list = [date,date-timedelta(days=1),date-timedelta(days=7)] #分别获取当天 前一天 上周同一天日期
+    print(date_list)
     columns = ['asin','platform','station','qty','count','currencycode','price','sametermrate','weekrate']
     data_frame = pd.DataFrame(None,index = date_list ,columns=columns)
     for date in date_list:
@@ -231,7 +232,7 @@ def product_detail_date(request):
     index = pd.MultiIndex.from_tuples(tuples, names=['asin', '日期'])
     #columns = ['in_sale_price', 'review_avg_star', 'stock', 'sessions','session_percentage',
     #           'total_order_items','conversion_rate','buy_box','today_deal_index','today_deal_type']
-    columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal排名', 'deal类型','销售排名类名名称','销售排名']
+    columns = ['单价', '评分', '库存', '流量', '转化率', 'buy_box', 'deal类型', 'deal排名','销售排名类名名称','销售排名']
     data_frame = pd.DataFrame(None, index=index, columns=columns)
     # print(data_frame)
     # print(data_frame.T)
@@ -239,14 +240,13 @@ def product_detail_date(request):
     for asin in asin_list:
         #获取某天的价格、评分和库存
         for date in date_list:
-            start = date
-            end = start + timedelta(hours=23, minutes=59, seconds=59)
             date_str = date.strftime("%Y-%m-%d")
+            date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
             product_info_list = AmazonProductBaseinfo.objects.using('front').\
-                filter(asin=asin).filter(Q(zone=zone)|Q(zone=zone.lower())).\
-                filter(create_date__range=(start, end)).\
-                exclude(in_sale_price=0).order_by('-create_date')
-            # print(product_info_list.query)
+                extra(where={'{}="{}"'.format(date_format, date_str)}).\
+                filter(asin=asin,zone=zone).exclude(in_sale_price=0).order_by('-create_date')
+            #print(product_info_list.query)
+            #print(product_info_list)
             # print(product_info_list)
             if product_info_list:
                 product_info = product_info_list[0]
@@ -297,10 +297,11 @@ def product_detail_date(request):
             date_format = r'DATE_FORMAT(create_date,"%%Y-%%m-%%d")'
             acsr = AmazonProductCategorySalesRank.objects.using('front'). \
                 extra(select={'date': date_format}, where={'{}="{}"'.format(date_format, date_str)}). \
-                filter(Q(zone=zone) | Q(zone=zone.lower())).filter(asin=asin, category_name__contains="(See Top 100"). \
+                filter(Q(zone=zone) | Q(zone=zone.lower())).filter(asin=asin, category_name__contains="(See"). \
                 order_by('sales_rank').first()
             if acsr:
-                data_frame.loc[(asin, date_str), '销售排名类名名称'] = acsr.category_name.replace("(See Top 100","")
+                #print(acsr.category_name.split("(")[0])
+                data_frame.loc[(asin, date_str), '销售排名类名名称'] = acsr.category_name.split("(")[0]
                 data_frame.loc[(asin, date_str), '销售排名'] = acsr.sales_rank
 
     data_list = data_frame.T.to_csv().split('\n')
@@ -504,14 +505,15 @@ def compare(today,last_week,attr="",scope=True):
 
 def get_data(request):
     zone = request.GET.get('zone', 'US').strip()
+    start = request.GET.get('start','').strip()
     zone_list = ["US", "DE", "CA", "JP", "UK", "ES", "FR", "IT"]
     asin = request.GET.get('asin', '').strip()
-    date_str = request.GET.get('date', '').strip()
+    end = request.GET.get('end', '').strip()
     column = request.GET.get('column', '').strip()
-    if not date_str:
-        date_str = datetime.now().strftime("%Y-%m-%d")
-    end = date_str
-    start = (datetime.strptime(end,"%Y-%m-%d")-timedelta(days=30)).strftime("%Y-%m-%d")
+    if not end:
+        end = datetime.now().strftime("%Y-%m-%d")
+    if not start:
+        start = (datetime.strptime(end,"%Y-%m-%d")-timedelta(days=30)).strftime("%Y-%m-%d")
     data_frame = get_data_with_column(zone,asin,start,end,column)
     date_list = [date.strftime("%Y-%m-%d") for date in pd.date_range(start=start,end=end)]
     column_data = [float(value) for value in data_frame[column].values]
@@ -532,7 +534,7 @@ def get_data(request):
     }
     column_name = column_dict.get(column,"")
     return render(request,"report/data.html",{"max_value":max_value,'interval':interval,
-                                              'zone':zone,'asin':asin,'column':column_name,
+                                              'zone':zone,'asin':asin,'column_name':column_name,'column':column,
                                               "date_list":date_list,"data_list":column_data})
 
 def get_data_with_column(zone,asin,start,end,column):
@@ -599,7 +601,7 @@ def get_data_with_column(zone,asin,start,end,column):
             extra(select={'date': date_format}, where={'{} between "{}" and "{}"'.format(date_format, start, end)}).\
             values('date','sales_rank'). \
             filter(Q(zone=zone) | Q(zone=zone.lower())).\
-            filter(asin=asin, category_name__contains="(See Top 100"). \
+            filter(asin=asin, category_name__contains="(See"). \
             order_by('-sales_rank')
         for acsr in acsr_list:
             data_frame.loc[acsr['date'], column] = acsr['sales_rank']

@@ -4,6 +4,7 @@
 
 {% block css %}
     <link href="{% static "css/bootstrap-datetimepicker.min.css" %}" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
     <style type="text/css">
         .pagination{
             margin-left: 450px;
@@ -13,60 +14,90 @@
 
 {% block context %}
     <div class="container">
-        <h2 class="text-center">Review统计排行 {{ date }}</h2>
-        <br />
-        <form class="form-horizontal"  action="{% url 'monitor:review_counts' %}" method="GET">
-        <div class="row">
+        <h2 class="text-center">{{ zone }}站点{{ asin }}产品Review统计</h2>
+{#        <br /><br />#}
+{#        <table class="table table-bordered  table-striped">#}
+{#            <thead>#}
+{#            <tr>#}
+{#                <th>zone</th>#}
+{#                <th>asin</th>#}
+{#                <th>总数</th>#}
+{#                <th>5分</th>#}
+{#                <th>4分</th>#}
+{#                <th>3分</th>#}
+{#                <th>2分</th>#}
+{#                <th>1分</th>#}
+{#            </tr>#}
+{#            </thead>#}
+{#            <tbody>#}
+{#            <tr>#}
+{#                <td>{{ zone }}</td>#}
+{#                <td>{{ review_count.asin }}</td>#}
+{#                <td>{{ review_count.count_all }}</td>#}
+{#                <td>{{ review_count.count5 }}</td>#}
+{#                <td>{{ review_count.count4 }}</td>#}
+{#                <td>{{ review_count.count3 }}</td>#}
+{#                <td>{{ review_count.count2 }}</td>#}
+{#                <td>{{ review_count.count1 }}</td>#}
+{#            </tr>#}
+{##}
+{#            </tbody>#}
+{#        </table>#}
+        <br /><br />
+        <form class="form-horizontal"  action="{% url 'monitor:review_of_asin_detail' %}" method="GET">
             <div class="form-group">
-{#            <label for="asin" class="col-md-1 control-label">asin</label>#}
-{#            <div class="col-md-3">#}
-{#                {% if profile %}#}
-{#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" value="{{ profile }}" />#}
-{#                {% else %}#}
-{#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />#}
-{#                {% endif %}#}
-{#            </div>#}
-                <label for="date" class="col-md-5 control-label">日期</label>
+            <div class="row">
+                <label for="zone" class="col-md-1 control-label">站点</label>
                 <div class="col-md-3">
-                    <div class="input-daterange input-group" id="datepicker">
-                        <input type="text" class="form-control" name="date" id="qBeginTime" data-date-format="yyyy-mm-dd" />
-                    </div>
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        <option>US</option>
+                        <option>DE</option>
+                        <option>CA</option>
+                        <option>JP</option>
+                        <option>ES</option>
+                        <option>FR</option>
+                        <option>IT</option>
+                        <option>UK</option>
+                    </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+                <label for="asin" class="col-md-1 control-label">asin</label>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin"/>
+                </div>
+                <label class="col-md-1 control-label">评分</label>
+                <div class="col-md-3">
+                    <select id="star" name="star" class="selectpicker show-tick form-control" multiple data-live-search="true">
+                        <option value="1">1分</option>
+                        <option value="2">2分</option>
+                        <option value="3">3分</option>
+                        <option value="4">4分</option>
+                        <option value="5">5分</option>
+                    </select>
                 </div>
             </div>
-        </div>
+            <br />
+            <div class="row">
+                <label for="date" class="col-md-1 control-label">日期</label>
+                <div class="col-md-4">
+                    <div class="input-daterange input-group" id="datepicker">
+                        <input type="text" class="form-control" name="start" id="qBeginTime" data-date-format="yyyy-mm-dd" />
+                        <span class="input-group-addon">至</span>
+                        <input type="text" class="form-control" name="end" id="qEndTime" data-date-format="yyyy-mm-dd" />
+                    </div>
+                </div>
+            </div>
+                <br />
+            <div class="row">
+                <div class="col-md-offset-5  col-md-2">
+                    <button type="button" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
+                    <button type="reset" class="btn btn-primary" style="margin-left:20px">清 空</button>
+                </div>
+            </div>
+            </div>
         </form>
-        <br />
-        <table class="table table-bordered  table-striped">
-            <thead>
-            <tr>
-                <th>zone</th>
-                <th>asin</th>
-                <th>总数</th>
-                <th>5</th>
-                <th>4</th>
-                <th>3</th>
-                <th>2</th>
-                <th>1</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td>{{ zone }}</td>
-                <td>{{ reviews.asin }}</td>
-                <td>{{ reviews.count_all }}</td>
-                <td>{{ reviews.count5 }}</td>
-                <td>{{ reviews.count4 }}</td>
-                <td>{{ reviews.count3 }}</td>
-                <td>{{ reviews.count2 }}</td>
-                <td>{{ reviews.count1 }}</td>
-            </tr>
-
-            </tbody>
-        </table>
-    <br /><br />
+    {% if review_list %}
+    <p>查询结果：共{{ result_count }}条</p>
     <table class="table table-bordered  table-striped">
             <thead>
             <tr>
@@ -76,34 +107,56 @@
                 <th>标题</th>
                 <th>评论内容</th>
                 <th>用户</th>
-                <th>评级</th>
-                <th>评论时间</th>
+                <th>评分</th>
+                <th>评论日期</th>
             </tr>
             </thead>
             <tbody>
-                {% for review in review_detail %}
+                {% for review in review_list %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td>{{ forloop.counter|add:start_index }}</td>
                         <td>{{ review.zone }}</td>
                         <td>{{ review.asin }}</td>
-                        <td><a href="{{ review.review_url }}" target="_blank">{{ review.review_title }}</a></td>
+                        <td><a href="{{ zone_url }}{{ review.review_url }}" target="_blank">{{ review.review_title }}</a></td>
                         <td>{{ review.review_text }}</td>
-                        <td><a href="{{ review.reviewer_url }}" target="_blank">{{ review.reviewer_name }}</a></td>
+                        <td><a href="{{ zone_url }}{{ review.reviewer_url }}" target="_blank">{{ review.reviewer_name }}</a></td>
                         <td>{{ review.review_star }}</td>
                         <td>{{ review.review_date }}</td>
                     </tr>
                 {% endfor %}
-
             </tr>
 
             </tbody>
         </table>
+    <div class="pagination">
+        <span class="step-links">
+            {% if review_list.has_previous %}
+                <a href="?zone={{ zone }}&asin={{ asin }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}&page={{ review_list.previous_page_number }}">前一页</a>
+            {% endif %}
+
+            <span class="current">
+                第 {{ review_list.number }} 页，共 {{ review_list.paginator.num_pages }} 页
+            </span>
+
+            {% if review_list.has_next %}
+                <a href="?zone={{ zone }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}&page={{ review_list.next_page_number }}">下一页</a>
+            {% endif %}
+        </span>
+    </div>
+    {% else %}
+        <br />
+        <h4 class="text-center">没有查询到Review</h4>
+    {% endif %}
     </div>
 {% endblock context %}
 
 {% block js %}
     <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.js' %}" charset="UTF-8"></script>
     <script type="text/javascript" src="{% static 'js/locales/bootstrap-datetimepicker.zh-CN.js' %}" charset="UTF-8"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js" type="text/javascript"></script>
+
+    <!-- (Optional) Latest compiled and minified JavaScript translation files -->
     <script>
     $('#li_product_list').attr('class','active');
     $('#qBeginTime').datetimepicker({
@@ -117,6 +170,25 @@
 		forceParse: 0,
         endDate:GetDateStr(-2),
         initialDate:GetDateStr(-2)
+}).on('changeDate',function(e){
+    var startTime = e.date;
+    $('#qEndTime').datetimepicker('setStartDate',startTime);
+});
+//结束时间：
+$('#qEndTime').datetimepicker({
+    language:  'zh-CN',
+        weekStart: 1,
+        //todayBtn:  1,
+		autoclose: 1,
+		//todayHighlight: 0,
+		startView: 2,
+		minView: 2,
+		forceParse: 0,
+        endDate:GetDateStr(-2),
+        initialDate:GetDateStr(-2)
+}).on('changeDate',function(e){
+    var endTime = e.date;
+    $('#qBeginTime').datetimepicker('setEndDate',endTime);
 });
     function GetDateStr(AddDayCount) {
         var dd = new Date();
@@ -127,7 +199,34 @@
         return y+"-"+m+"-"+d;
     }
     function doQuery(form) {
-        document.myform.submit();
+        var arr = $('#star').val();
+        if (arr!=null){
+           var star = arr.join("_");
+        }
+        else{
+            var star="";
+        }
+        var zone = form.zone.value;
+        var asin = form.asin.value;
+        var start = form.start.value;
+        var end = form.end.value;
+        if(zone==""){
+            alert("请选择zone");
+            return false;
+        }
+        window.location = "{% url 'monitor:review_of_asin_detail' %}"+"?zone="+zone+"&asin="+asin+"&star="+star+"&start="+start+"&end="+end;
     };
+    $(window).on('load', function () {
+        var str='{{ star }}';
+        var arr=str.split('_');
+        $('.selectpicker').selectpicker({
+            'selectedText': 'cat'
+    });
+        $('.selectpicker').selectpicker('val', arr);
+});
+    $('#zone').val("{{ zone }}");
+    $('#asin').val("{{ asin }}");
+    $('#qBeginTime').val("{{ start }}");
+    $('#qEndTime').val("{{ end }}");
     </script>
 {% endblock js %}

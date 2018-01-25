@@ -15,9 +15,18 @@
     <div class="container">
         <h2 class="text-center">Review统计排行 {{ zone }}</h2>
         <br />
-        <form class="form-horizontal"  action="{% url 'monitor:review_counts' %}" method="GET">
+        <form class="form-horizontal"  action="{% url 'monitor:review_of_asin' %}" method="GET">
         <div class="row">
             <div class="form-group">
+                <label for="zone" class="col-md-offset-3 col-md-1 control-label">站点</label>
+                <div class="col-md-3">
+                    <select class="form-control" id="zone" name="zone">
+                        <option></option>
+                        {% for zone in zones %}
+                        <option>{{ zone }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 {#            <label for="asin" class="col-md-1 control-label">asin</label>#}
 {#            <div class="col-md-3">#}
 {#                {% if profile %}#}
@@ -26,12 +35,6 @@
 {#                    <input type="text" class="form-control" id="asin" name="asin" placeholder="asin" />#}
 {#                {% endif %}#}
 {#            </div>#}
-                <label for="date" class="col-md-5 control-label">日期</label>
-                <div class="col-md-3">
-                    <div class="input-daterange input-group" id="datepicker">
-                        <input type="text" class="form-control" name="date" id="qBeginTime" data-date-format="yyyy-mm-dd" />
-                    </div>
-                </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary" onclick="return doQuery(this.form)">查 询</button>
                 </div>
@@ -51,7 +54,7 @@
             <tbody>
             {% for review in reviews %}
                 <tr>
-                    <td>{{ forloop.counter }}</td>
+                    <td>{{ forloop.counter|add:start_index }}</td>
                     <td>{{ zone }}</td>
                     <td><a href="{% url 'monitor:review_of_asin_detail' %}?zone={{ zone }}&asin={{ review.asin }}">{{ review.asin }}</a></td>
                     <td>{{ review.count }}</td>
@@ -59,6 +62,23 @@
             {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="container">
+    <div class="pagination">
+        <span class="step-links">
+            {% if reviews.has_previous %}
+                <a href="?zone={{ zone }}&page={{ reviews.previous_page_number }}">前一页</a>
+            {% endif %}
+
+            <span class="current">
+                第 {{ reviews.number }} 页，共 {{ reviews.paginator.num_pages }} 页
+            </span>
+
+            {% if reviews.has_next %}
+                <a href="?zone={{ zone }}&page={{ reviews.next_page_number }}">下一页</a>
+            {% endif %}
+        </span>
+    </div>
     </div>
 {% endblock context %}
 
@@ -90,5 +110,6 @@
     function doQuery(form) {
         document.myform.submit();
     };
+    $('#zone').val("{{ zone }}");
     </script>
 {% endblock js %}

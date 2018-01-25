@@ -75,12 +75,16 @@
                 <tr>
                     <th class="text-center">asin</th>
                     {% for asin in asin_list %}
-                        <th colspan="3" class="text-center">{{ asin }}</th>
+                        {% if forloop.first %}
+                            <th colspan="3" class="text-center" {% if asin_list|length > 1 %}style="border-right-color:black"{% endif %}>{{ asin }}(我司产品)</th>
+                        {% else %}
+                            <th colspan="3" class="text-center">{{ asin }}(竞品)</th>
+                        {% endif %}
                     {% endfor %}
                 </tr>
                 <tr>
                     {% for value in product_info_thead %}
-                        <th class="text-center">{{ value }}</th>
+                        <th class="text-center" {% if forloop.counter == 4 and product_info_thead|length > 4 %}style="border-right-color:black"{% endif %}>{{ value }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -91,7 +95,11 @@
                         {% if forloop.first and value != "deal类型" and value != "销售排名类名名称" %}
                             <td class="text-center"><a href="javascript:void(0)" onclick="get_data('{{ value }}')">{{ value }}</a></td>
                         {% else %}
-                            <td>{{ value }}</td>
+                            {% if forloop.counter == 4 and product_list|length > 4 %}
+                                <td style="border-right-color:black">{{ value }}</td>
+                            {% else %}
+                                <td>{{ value }}</td>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
                 </tr>

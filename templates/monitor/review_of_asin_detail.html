@@ -97,7 +97,10 @@
             </div>
         </form>
     {% if review_list %}
-        <p>查询结果：共{{ result_count }}条</p><p><a href="{% url 'monitor:review_to_excel' %}?zone={{ zone }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}">保存为excel</a></p>
+        <div class="row">
+            <div class="col-md-4">查询结果：共{{ result_count }}条</div>
+            <div class="col-md-offset-6 col-md-2"><button class="btn"><a href="{% url 'monitor:review_to_excel' %}?zone={{ zone }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}">保存为excel</a></button></div>
+        </div>
     <table class="table table-bordered  table-striped">
             <thead>
             <tr>

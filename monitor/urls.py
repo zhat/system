@@ -8,5 +8,5 @@ urlpatterns = [
     url(r'review_of_asin_detail/$',views.review_of_asin_detail,name='review_of_asin_detail'),
     url(r'review_of_asin/$',views.review_of_asin,name='review_of_asin'),
     url(r'review_of_zone/$',views.review_of_zone,name='review_of_zone'),
-    url(r'review_to_csv/$',views.review_to_csv,name='review_to_csv'),
+    url(r'review_to_excel/$',views.review_to_excel,name='review_to_excel'),
 ]

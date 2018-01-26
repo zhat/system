@@ -2,12 +2,18 @@ from django.shortcuts import render
 from django.db.models import Count
 from .models import FeedbackInfo, AmazonRefShopList, AmazonProductReviews
 from datetime import datetime, timedelta
-import pandas as pd
+from rest_framework.response import Response
+from django.http import HttpResponse,StreamingHttpResponse
+from rest_framework import status
 import logging
+from urllib.parse import urljoin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-import csv
 import xlwt
+import time
 import pandas as pd
+import os
+from django.contrib.auth import settings
+import json
 # Create your views here.
 logger = logging.getLogger('django')
 
@@ -344,7 +350,7 @@ def review_of_asin_detail(request):
                                                                   "zone_url":zone_url,
                                                                   "review_list":review_list})
 
-def review_to_csv(request):
+def review_to_excel(request):
     zone = request.GET.get("zone","").strip()
     asin = request.GET.get("asin", '').strip()
     star_str = request.GET.get("star", '').strip()
@@ -353,10 +359,11 @@ def review_to_csv(request):
 
     if not zone:
         zone = "US"
+    if not asin:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     """objects.values('authors__name').annotate(Sum('price'))"""
     review_detail_list = AmazonProductReviews.objects.using('front').filter(zone=zone,asin=asin)
     if star_str:
-        print(star_str)
         star_list = star_str.split("_")
         star_list = [star+".0" for star in star_list]
         review_detail_list = review_detail_list.filter(review_star__in=star_list)
@@ -367,38 +374,75 @@ def review_to_csv(request):
     review_detail_list = review_detail_list.order_by("-review_date")
 
     zone_url = zone_to_domain(zone)
+    style = xlwt.XFStyle()
+    text_style = xlwt.XFStyle()
+    font = xlwt.Font()
+    alignment = xlwt.Alignment()  # Create Alignment
+    alignment.horz = xlwt.Alignment.HORZ_CENTER  # May be: HORZ_GENERAL, HORZ_LEFT, HORZ_CENTER, HORZ_RIGHT, HORZ_FILLED, HORZ_JUSTIFIED, HORZ_CENTER_ACROSS_SEL, HORZ_DISTRIBUTED
+    alignment.vert = xlwt.Alignment.VERT_CENTER
+    font.height = 0x00F0
+    style.font = font
+    style.alignment = alignment
+    text_style.alignment = alignment
     book = xlwt.Workbook(encoding='utf-8', style_compression=0)
-    sheet = book.add_sheet('test', cell_overwrite_ok=True)
-    for review in review_detail_list:
-        pass
-    sheet.write(0, 0, 'EnglishName')  # 其中的'0-行, 0-列'指定表中的单元，'EnglishName'是向该单元写入的内容
-    sheet.write(1, 0, 'Marcovaldo')
-    txt1 = '中文名字'
-    sheet.write(0, 1, txt1)  # 此处需要将中文字符串解码成unicode码，否则会报错
-    txt2 = '马可瓦多'
-    sheet.write(1, 1, txt2)
+    sheet = book.add_sheet('review', cell_overwrite_ok=True)
+    sheet.write(0, 0, 'zone',style)  # 其中的'0-行, 0-列'指定表中的单元，'EnglishName'是向该单元写入的内容
+    sheet.write(0, 1, "asin",style)
+    sheet.write(0, 2, "review_id",style)
+    sheet.write(0, 3, "标题",style)
+    sheet.write(0, 4, "评论内容",style)
+    sheet.write(0, 5, "用户", style)
+    sheet.write(0, 6, "用户url", style)
+    sheet.write(0, 7, "评分",style)
+    sheet.write(0, 8, "评论日期",style)
+    wrap_style = xlwt.easyxf('align: wrap on')
 
-    # 最后，将以上操作保存到指定的Excel文件中
-    book.save(r'e:\test1.xls')  # 在字符串前加r，声明为raw字符串，这样就不会处理其中的转义了。否则，可能会报错
-    writer = pd.ExcelWriter('output.xlsx')
-    df1 = pd.DataFrame(data={'col1': [1, 1], 'col2': [2, 2]})
-    df1.to_excel(writer, 'Sheet1')
-    writer.save()
-    with open("test.csv", "w",encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
+    #wrap_style.alignment = alignment
+    # wrap_style.font = font
+    for i,review in enumerate(review_detail_list):
+        sheet.write(i + 1, 0, review.zone,text_style)
+        sheet.write(i + 1, 1, review.asin,text_style)
+        sheet.write(i + 1, 2, xlwt.Formula('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_id)),text_style)
+        sheet.write(i + 1, 3, review.review_title, text_style)
+        #print('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_title))
+        #sheet.write(i + 1, 2, xlwt.Formula('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_title)))
+        sheet.write(i + 1, 4, review.review_text,wrap_style)
+        #sheet.write(i + 1, 4, xlwt.Formula('HYPERLINK("http://www.google.com";"Google")'))
+        sheet.write(i + 1, 5, review.reviewer_name, text_style)
+        sheet.write(i + 1, 6, urljoin(zone_url,review.reviewer_url), text_style)
+        sheet.write(i + 1, 7, review.review_star,text_style)
+        sheet.write(i + 1, 8, review.review_date.strftime("%Y-%m-%d"),text_style)
 
-        # 先写入columns_name
-        # "序号	zone	asin	标题	评论内容	用户	评分	评论日期"
-        writer.writerow(["zone", "asin","标题","评论内容","用户","评分","评论日期"])
-        # 写入多行用writerows
-        for review in review_detail_list:
-            writer.writerow([review.zone,review.asin,review.review_title,review.review_text,review.reviewer_name,
-                             review.review_star,review.review_date])
 
-    return render(request, "monitor/review_of_asin_detail.html", {"star":star_str,
-                                                                  "zone": zone,"asin":asin,
-                                                                  "start":start,"end":end,"zone_url":zone_url})
+    # 设置单元格宽度
+    sheet.col(0).width = 3333
+    sheet.col(1).width = 5000
+    sheet.col(2).width = 5000
+    sheet.col(3).width = 8000
+    sheet.col(4).width = 20000
+    sheet.col(5).width = 5000
+    sheet.col(6).width = 10000
+    sheet.col(7).width = 3333
+    sheet.col(8).width = 3333
 
+    # 最后，将以上操作保存到指定的Excel文件中xlsx
+    file_name = "{}_{}_{}.xls".format(zone,asin,int(time.time()*10000000))
+    file_path = os.path.join(settings.MEDIA_ROOT,file_name)
+    book.save(file_path)  # 在字符串前加r，声明为raw字符串，这样就不会处理其中的转义了。否则，可能会报错
+
+    response = StreamingHttpResponse(file_iterator(file_path))  # 这里创建返回
+    response['Content-Type'] = 'application/vnd.ms-excel'  # 注意格式
+    response['Content-Disposition'] = 'attachment;filename="{}"'.format(file_name)  # 注意filename 这个是下载后的名字
+    return response
+
+def file_iterator(file_name, chunk_size=512):  # 用于形成二进制数据
+    with open(file_name, 'rb') as f:
+        while True:
+            c = f.read(chunk_size)
+            if c:
+                yield c
+            else:
+                break
 
 def zone_to_domain(zone):
     switcher = {

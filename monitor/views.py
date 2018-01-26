@@ -2,9 +2,7 @@ from django.shortcuts import render
 from django.db.models import Count
 from .models import FeedbackInfo, AmazonRefShopList, AmazonProductReviews
 from datetime import datetime, timedelta
-from rest_framework.response import Response
 from django.http import HttpResponse,StreamingHttpResponse
-from rest_framework import status
 import logging
 from urllib.parse import urljoin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -359,8 +357,6 @@ def review_to_excel(request):
 
     if not zone:
         zone = "US"
-    if not asin:
-        return Response(status=status.HTTP_404_NOT_FOUND)
     """objects.values('authors__name').annotate(Sum('price'))"""
     review_detail_list = AmazonProductReviews.objects.using('front').filter(zone=zone,asin=asin)
     if star_str:

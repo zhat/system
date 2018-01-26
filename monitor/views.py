@@ -358,7 +358,9 @@ def review_to_excel(request):
     if not zone:
         zone = "US"
     """objects.values('authors__name').annotate(Sum('price'))"""
-    review_detail_list = AmazonProductReviews.objects.using('front').filter(zone=zone,asin=asin)
+    review_detail_list = AmazonProductReviews.objects.using('front').filter(zone=zone)
+    if asin:
+        review_detail_list = review_detail_list.filter(asin=asin)
     if star_str:
         star_list = star_str.split("_")
         star_list = [star+".0" for star in star_list]

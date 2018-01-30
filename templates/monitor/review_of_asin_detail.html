@@ -242,7 +242,11 @@ $('#qEndTime').datetimepicker({
                 var dataObj=JSON.parse(data);
                 var filename = dataObj["file_name"];
                 //alert("/media/"+filename);
-                window.open("/media/"+filename);
+                $.ajax({
+                    url:"/media/"+filename,
+                    datatype:"",
+                })
+                $.download("/media/"+filename, 'get');
             }
         })
     })

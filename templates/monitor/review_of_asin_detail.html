@@ -99,7 +99,7 @@
     {% if review_list %}
         <div class="row">
             <div class="col-md-4">查询结果：共{{ result_count }}条</div>
-            <div class="col-md-offset-6 col-md-2"><button class="btn"><a href="{% url 'monitor:review_to_excel' %}?zone={{ zone }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}">保存为excel</a></button></div>
+            <div class="col-md-offset-6 col-md-2"><input type="button" class="btn" id="download" value="保存为excel"></div>
         </div>
     <table class="table table-bordered  table-striped">
             <thead>
@@ -231,5 +231,20 @@ $('#qEndTime').datetimepicker({
     $('#asin').val("{{ asin }}");
     $('#qBeginTime').val("{{ start }}");
     $('#qEndTime').val("{{ end }}");
+
+    $("#download").click(function(){
+        $.ajax({
+            url:"{% url 'monitor:review_to_excel' %}?zone={{ zone }}&asin={{ asin }}&star={{ star }}&start={{ start }}&end={{ end }}",
+            type:"GET",
+            data:{
+            },
+            success:function(data){
+                var dataObj=JSON.parse(data);
+                var filename = dataObj["file_name"];
+                //alert("/media/"+filename);
+                window.open("/media/"+filename);
+            }
+        })
+    })
     </script>
 {% endblock js %}

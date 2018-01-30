@@ -3,6 +3,7 @@ from django.db.models import Count
 from .models import FeedbackInfo, AmazonRefShopList, AmazonProductReviews
 from datetime import datetime, timedelta
 from django.http import HttpResponse,StreamingHttpResponse
+from django.contrib.auth.decorators import login_required
 import logging
 from urllib.parse import urljoin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -56,6 +57,7 @@ def get_data(date_list, shop_name_list, zone, field):
     return max_value, interval, field_data_list
 
 
+@login_required
 def feedback(request):
     zone = request.GET.get("zone", '').strip()
     print(zone)
@@ -219,6 +221,7 @@ def review_counts(request):
     print(reviews)
     return render(request, "monitor/review_of_asin.html", {"zone":zone, "date":date, "reviews":reviews})
 
+@login_required
 def review_count_with_asin(request):
     asin = request.GET.get("asin", '').strip()
     if not asin:
@@ -238,7 +241,7 @@ def review_detail(request):
     asin = "B005FEGYJC"
     AmazonProductReviews.objects.using('front').filter(asin=asin).filter()
 
-
+@login_required
 def review_of_zone(request):
     date = request.GET.get("date", '').strip()
     if not date:
@@ -251,6 +254,7 @@ def review_of_zone(request):
     # print(reviews)
     return render(request, "monitor/review_of_zone.html", {"reviews": reviews})
 
+@login_required
 def review_of_asin(request):
     date = request.GET.get("date", '').strip()
     zone = request.GET.get("zone","US").strip()
@@ -274,7 +278,7 @@ def review_of_asin(request):
     zones = ["US","DE","UK","CA","FR","IT","ES","JP"]
     return render(request,"monitor/review_of_asin.html",{"zone":zone,"zones":zones,"start_index":(int(page)-1)*10,
                                                          "date":date,"reviews":review_list})
-
+@login_required
 def review_of_asin_detail(request):
     zone = request.GET.get("zone","").strip()
     asin = request.GET.get("asin", '').strip()
@@ -348,6 +352,7 @@ def review_of_asin_detail(request):
                                                                   "zone_url":zone_url,
                                                                   "review_list":review_list})
 
+@login_required
 def review_to_excel(request):
     zone = request.GET.get("zone","").strip()
     asin = request.GET.get("asin", '').strip()
@@ -450,11 +455,11 @@ def review_to_excel(request):
     file_name = "{}_{}_{}.xls".format(zone,asin,int(time.time()*10000000))
     file_path = os.path.join(settings.MEDIA_ROOT,file_name)
     book.save(file_path)  # 在字符串前加r，声明为raw字符串，这样就不会处理其中的转义了。否则，可能会报错
-    # return HttpResponse(json.dumps({"file_name":file_name}))
-    response = StreamingHttpResponse(file_iterator(file_path))  # 这里创建返回
-    response['Content-Type'] = 'application/vnd.ms-excel'  # 注意格式
-    response['Content-Disposition'] = 'attachment;filename="{}"'.format(file_name)  # 注意filename 这个是下载后的名字
-    return response
+    return HttpResponse(json.dumps({"file_name":file_name}))
+    # response = StreamingHttpResponse(file_iterator(file_path))  # 这里创建返回
+    # response['Content-Type'] = 'application/vnd.ms-excel'  # 注意格式
+    # response['Content-Disposition'] = 'attachment;filename="{}"'.format(file_name)  # 注意filename 这个是下载后的名字
+    # return response
 
 def file_iterator(file_name, chunk_size=512):  # 用于形成二进制数据
     with open(file_name, 'rb') as f:

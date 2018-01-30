@@ -120,6 +120,8 @@
 {#                        <li  class="" id="li_station"><a href="{% url 'report:test' %}">test</a></li>#}
                     </ul>
                   </li>
+              {% endif %}
+              {% if perms.report.reviews %}
                 <li>
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">数据监控<span class="caret"></span></a>
                   <ul class="dropdown-menu">
@@ -129,7 +131,7 @@
                       <li class="" id="li_review_of_asin_detail"><a href="{% url 'monitor:review_of_asin_detail' %}">review_of_asin_detail</a></li>
                   </ul>
               </li>
-          {% endif %}
+              {% endif %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
               {% if user.is_authenticated %}

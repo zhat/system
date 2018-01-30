@@ -117,14 +117,14 @@
             <tbody>
                 {% for review in review_list %}
                     <tr>
-                        <td>{{ forloop.counter|add:start_index }}</td>
-                        <td>{{ review.zone }}</td>
-                        <td>{{ review.asin }}</td>
-                        <td><a href="{{ zone_url }}{{ review.review_url }}" target="_blank">{{ review.review_title }}</a></td>
+                        <td width="5%">{{ forloop.counter|add:start_index }}</td>
+                        <td width="5%">{{ review.zone }}</td>
+                        <td width="5%">{{ review.asin }}</td>
+                        <td width="10%"><a href="{{ zone_url }}{{ review.review_url }}" target="_blank">{{ review.review_title }}</a></td>
                         <td>{{ review.review_text }}</td>
-                        <td><a href="{{ zone_url }}{{ review.reviewer_url }}" target="_blank">{{ review.reviewer_name }}</a></td>
-                        <td>{{ review.review_star }}</td>
-                        <td>{{ review.review_date }}</td>
+                        <td width="5%"><a href="{{ zone_url }}{{ review.reviewer_url }}" target="_blank">{{ review.reviewer_name }}</a></td>
+                        <td width="5%">{{ review.review_star }}</td>
+                        <td width="8%">{{ review.review_date|date:"Y-m-d" }}</td>
                     </tr>
                 {% endfor %}
             </tr>

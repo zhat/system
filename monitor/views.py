@@ -398,19 +398,43 @@ def review_to_excel(request):
     #wrap_style.alignment = alignment
     # wrap_style.font = font
     for i,review in enumerate(review_detail_list):
-        sheet.write(i + 1, 0, review.zone,text_style)
-        sheet.write(i + 1, 1, review.asin,text_style)
-        sheet.write(i + 1, 2, xlwt.Formula('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_id)),text_style)
-        sheet.write(i + 1, 3, review.review_title, text_style)
+        if i==65535:
+            # 设置单元格宽度
+            sheet.col(0).width = 3333
+            sheet.col(1).width = 5000
+            sheet.col(2).width = 5000
+            sheet.col(3).width = 8000
+            sheet.col(4).width = 20000
+            sheet.col(5).width = 5000
+            sheet.col(6).width = 10000
+            sheet.col(7).width = 3333
+            sheet.col(8).width = 3333
+            sheet = book.add_sheet('review2', cell_overwrite_ok=True)
+            sheet.write(0, 0, 'zone', style)  # 其中的'0-行, 0-列'指定表中的单元，'EnglishName'是向该单元写入的内容
+            sheet.write(0, 1, "asin", style)
+            sheet.write(0, 2, "review_id", style)
+            sheet.write(0, 3, "标题", style)
+            sheet.write(0, 4, "评论内容", style)
+            sheet.write(0, 5, "用户", style)
+            sheet.write(0, 6, "用户url", style)
+            sheet.write(0, 7, "评分", style)
+            sheet.write(0, 8, "评论日期", style)
+        if i > 65534:
+            row = i-65535+1
+        else:
+            row = i + 1
+        sheet.write(row, 0, review.zone,text_style)
+        sheet.write(row, 1, review.asin,text_style)
+        sheet.write(row, 2, xlwt.Formula('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_id)),text_style)
+        sheet.write(row, 3, review.review_title, text_style)
         #print('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_title))
         #sheet.write(i + 1, 2, xlwt.Formula('HYPERLINK("{}";"{}")'.format(urljoin(zone_url,review.review_url),review.review_title)))
-        sheet.write(i + 1, 4, review.review_text,wrap_style)
+        sheet.write(row, 4, review.review_text,wrap_style)
         #sheet.write(i + 1, 4, xlwt.Formula('HYPERLINK("http://www.google.com";"Google")'))
-        sheet.write(i + 1, 5, review.reviewer_name, text_style)
-        sheet.write(i + 1, 6, urljoin(zone_url,review.reviewer_url), text_style)
-        sheet.write(i + 1, 7, review.review_star,text_style)
-        sheet.write(i + 1, 8, review.review_date.strftime("%Y-%m-%d"),text_style)
-
+        sheet.write(row, 5, review.reviewer_name, text_style)
+        sheet.write(row, 6, urljoin(zone_url,review.reviewer_url), text_style)
+        sheet.write(row, 7, review.review_star,text_style)
+        sheet.write(row, 8, review.review_date.strftime("%Y-%m-%d"),text_style)
 
     # 设置单元格宽度
     sheet.col(0).width = 3333
@@ -422,12 +446,11 @@ def review_to_excel(request):
     sheet.col(6).width = 10000
     sheet.col(7).width = 3333
     sheet.col(8).width = 3333
-
     # 最后，将以上操作保存到指定的Excel文件中xlsx
     file_name = "{}_{}_{}.xls".format(zone,asin,int(time.time()*10000000))
     file_path = os.path.join(settings.MEDIA_ROOT,file_name)
     book.save(file_path)  # 在字符串前加r，声明为raw字符串，这样就不会处理其中的转义了。否则，可能会报错
-
+    # return HttpResponse(json.dumps({"file_name":file_name}))
     response = StreamingHttpResponse(file_iterator(file_path))  # 这里创建返回
     response['Content-Type'] = 'application/vnd.ms-excel'  # 注意格式
     response['Content-Disposition'] = 'attachment;filename="{}"'.format(file_name)  # 注意filename 这个是下载后的名字
